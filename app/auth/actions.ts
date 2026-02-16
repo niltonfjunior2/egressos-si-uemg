@@ -82,3 +82,23 @@ export async function signout() {
     revalidatePath('/', 'layout')
     redirect('/login')
 }
+
+// Imports for recovery
+import { createAdminClient } from '@/lib/supabase/admin'
+import { getServerBaseUrl } from '@/utils/url'
+
+export async function recoverPassword(formData: FormData) {
+    const email = formData.get('email') as string
+    const adminDb = createAdminClient()
+
+    // O link apontará diretamente para a página /reset, sem passar por callbacks de API
+    const baseUrl = await getServerBaseUrl()
+    const callbackUrl = `${baseUrl}reset`
+
+    const { error } = await adminDb.auth.resetPasswordForEmail(email, {
+        redirectTo: callbackUrl
+    })
+
+    if (error) return { error: error.message }
+    return { success: true }
+}

@@ -31,7 +31,7 @@ export default async function FeedPage() {
     return (
         <div className="container mx-auto py-10 px-4">
             <h1 className="text-3xl font-bold mb-6 text-center md:text-left">Feed de Notícias</h1>
-            <FeedList posts={posts as unknown as Post[]} currentUserId={user.id} />
+            <FeedList posts={(posts || []) as unknown as Post[]} currentUserId={user.id} />
         </div>
     )
 }
