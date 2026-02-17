@@ -46,6 +46,10 @@
   --radius-3xl: calc(var(--radius) + 12px);
   --radius-4xl: calc(var(--radius) + 16px);
   --color-landing-secondary: var(--landing-secondary);
+  --color-admin-primary: var(--admin-primary);
+  --color-admin-accent: var(--admin-accent);
+  --color-admin-bg-light: var(--admin-bg-light);
+  --color-admin-bg-dark: var(--admin-bg-dark);
 }
 
 :root {
@@ -82,6 +86,11 @@
   --sidebar-accent-foreground: #18181b;
   --sidebar-border: #e4e4e7;
   --sidebar-ring: #d4d4d8;
+  /* Admin Panel Colors */
+  --admin-primary: #4A748E;
+  --admin-accent: #E31B23;
+  --admin-bg-light: #CED4D2;
+  --admin-bg-dark: #0f172a;
 }
 
 .dark {
@@ -119,6 +128,13 @@
   --sidebar-ring: #d4d4d8;
   /* Landing Page Specifics */
   --landing-secondary: #E31837;
+  /* Admin Panel Colors */
+  --admin-primary: #4A748E;
+  /* Keeping consistent for now or lighter? Reference uses same names */
+  --admin-accent: #E31B23;
+  --admin-bg-light: #1e293b;
+  /* Dark counterpart for CED4D2? Maybe slate-800 */
+  --admin-bg-dark: #020617;
 }
 
 @layer components {

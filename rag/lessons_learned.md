@@ -162,8 +162,21 @@ if (error?.code === '23505') {
 ### [2026-01-23] - [REACT-PDF] Layout e Quebra de Linha
 
 **Contexto:** Tabelas quebram em layouts PDF complexos.
-**Solução:** Definir larguras fixas (%) e reduzir tamanho da fonte preventivamente. Não confiar no auto-layout do PDF.
+**Solução:** Definir larguras fixas (%) e reduzir tamanho da fonte preventivamente.Não confiar no auto-layout do PDF.
 
-```
+### [2026-02-16] - [AUTH/EMAIL] Erro de Cadastro com Email Hifenizado
 
-```
+**Contexto:** Ao tentar cadastrar manualmente o usuário `admin-egressos@uemg.br` no Dashboard do Supabase o sistema rejeitou o email. Ao trocar para `adminegressos@uemg.br`, o cadastro funcionou imediatamente.
+**Solução:** Evitar caracteres especiais ou hífens em emails de sistema/admin se houver relatos de instabilidade, e investigar configurações de validação de email do provedor SMTP/Auth.
+
+### [2026-02-16] - [NEXTJS/ROUTING] Route Groups vs URL Segments
+
+**Contexto:** Erro 404 ao acessar `/admin`. A pasta do projeto estava nomeada como `(admin)`. Em Next.js, pastas entre parênteses são "Route Groups" e não criam caminhos na URL.
+**Solução:** Renomear a pasta de `app/(admin)` para `app/admin` se a intenção for criar uma rota acessível via `/admin`.
+**Prevenção:** Usar `(folder)` apenas para agrupar arquivos logicamente ou compartilhar layouts sem afetar a URL. Para criar rotas, usar nomes de pasta simples.
+
+### [2026-02-16] - [AUTH/DB] Usuários "Zumbis" (Auth Sem Profile)
+
+**Contexto:** Admin redirecionado para `/feed` infinitamente. O usuário existia em `auth.users` (criado via dashboard) mas não tinha registro correspondente em `public.profiles` com a role `administrador`.
+**Solução:** Script SQL de correção inserindo o profile manualmente.
+**Prevenção:** Ao criar usuários manualmente no dashboard do Supabase, lembrar que triggers de criação de profile podem falhar ou não existir. Sempre verificar se o registro existe nas duas tabelas (`auth.users` e `public.profiles`).

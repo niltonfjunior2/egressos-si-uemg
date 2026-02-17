@@ -38,9 +38,17 @@ Este documento guia o desenvolvimento incremental do sistema, unindo os requisit
 
 **Objetivo:** Ferramentas para a Coordenação (NDE).
 
-- [ ] **Painel Administrativo**
-  - [ ] Dashboard: "Quem está empregado?", "Média Salarial (Agregada)".
-  - [ ] Moderação: Admin pode apagar posts ou vagas impróprias.
+- [x] **Painel Administrativo (Básico)**
+  - [x] Layout & Sidebar (RBAC)
+  - [x] Dashboard (Widgets + Gráficos)
+- [x] **Gerenciamento de Usuários**
+  - [x] Listagem, Filtros e Ações (CRUD)
+  - [x] Controle de Acesso (RBAC)
+- [x] **Gerenciamento de Vagas**
+  - [x] CRUD completo com RBAC (Admin/Coord vs Auth)
+  - [x] Campos Extras (Contato, PJ)
+- [ ] **Moderação**
+  - [ ] Admin pode apagar posts ou vagas impróprias.
 
 - [ ] **Relatórios CEE/MG**
   - [ ] Exportação de dados para conformidade com a Resolução 502/2025.

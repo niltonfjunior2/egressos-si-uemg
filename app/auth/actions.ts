@@ -14,10 +14,21 @@ export async function login(formData: LoginFormData) {
         return { error: 'Dados inválidos' }
     }
 
-    const { error } = await supabase.auth.signInWithPassword(formData)
+    const { data, error } = await supabase.auth.signInWithPassword(formData)
 
     if (error) {
         return { error: 'Credenciais inválidas' }
+    }
+
+    const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', data.user.id)
+        .single()
+
+    if (profile && ['administrador', 'coordenador', 'professor'].includes(profile.role)) {
+        revalidatePath('/', 'layout')
+        redirect('/admin')
     }
 
     revalidatePath('/', 'layout')
