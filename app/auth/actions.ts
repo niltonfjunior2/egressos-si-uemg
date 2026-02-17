@@ -32,7 +32,7 @@ export async function login(formData: LoginFormData) {
     }
 
     revalidatePath('/', 'layout')
-    redirect('/feed')
+    redirect('/profile')
 }
 
 export async function signup(formData: SignupFormData) {
@@ -84,14 +84,14 @@ export async function signup(formData: SignupFormData) {
     }
 
     revalidatePath('/', 'layout')
-    redirect('/feed')
+    redirect('/profile')
 }
 
 export async function signout() {
     const supabase = await createClient()
     await supabase.auth.signOut()
     revalidatePath('/', 'layout')
-    redirect('/login')
+    redirect('/login?signedout=true')
 }
 
 // Imports for recovery

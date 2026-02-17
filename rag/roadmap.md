@@ -71,6 +71,31 @@ Este documento guia o desenvolvimento incremental do sistema, unindo os requisit
   - [x] Feed: Correção de hidratação e visibilidade pública.
   - [x] Vagas: Correção de campos (Remoto/Híbrido) e formulários.
   - [x] Diretório: Correção de busca.
+- [x] **Profile Wizard & Survey**:
+  - [x] Implementação do fluxo de 6 passos (Dados → Carreira → Educação → Pesquisa → Mentoria → Finalização).
+  - [x] Coleta de dados estatísticos (LGPD + Pesquisa).
+  - [x] Campos adicionados: Social Name, Mobile Phone, GitHub URL, Social Media URL, Lattes URL.
+  - [x] Remoção de `avatar_url`, substituição por Social Media URL.
+  - [x] Tech Stack no histórico profissional.
+- [x] **Portal Sidebar & Navigation**:
+  - [x] Sidebar com navegação: Perfil, Diretório, Vagas, Coordenação, Configurações.
+  - [x] Remoção do Feed do portal.
+  - [x] Redirecionamento pós-login para `/profile`.
+- [x] **Profile View (Modo Leitura)**:
+  - [x] Visualização completa do perfil em modo somente leitura.
+  - [x] Edição via botão "Atualizar Cadastro" (redireciona para Wizard).
+- [x] **Configurações de Segurança**:
+  - [x] Alteração de senha.
+- [x] **Diretório de Egressos (Aprimorado)**:
+  - [x] Botão "Ver informações de contato" com Dialog.
+  - [x] Exibição de e-mail, telefone/WhatsApp, links sociais e Lattes.
+  - [x] Informações de Mentoria (cargo e tecnologias) para mentores.
+  - [x] Filtragem por role: apenas Alunos e Egressos visíveis.
+- [x] **Página do Coordenador**:
+  - [x] Sidebar link "Coordenação".
+  - [x] Exibição de dados do coordenador (exceto telefone).
+- [x] **Correção de Logout**:
+  - [x] Redirect para `/login` após signout (bypass de middleware stale session).
 
 ---
 
@@ -94,3 +119,6 @@ Este documento guia o desenvolvimento incremental do sistema, unindo os requisit
 - **[L13]**: Public RLS.
 - **[L14]**: Hydration Mismatch.
 - **[L15]**: Form vs DB Types.
+- **[L16]**: Stale Session no Middleware após Signout.
+- **[L17]**: Filtragem por Role em Listagens Públicas.
+- **[L18]**: Evolução Incremental do Schema de Perfil.

@@ -21,8 +21,11 @@ export async function updateProfile(formData: ProfileFormData) {
         id: user.id,
         full_name: formData.fullName,
         social_name: formData.socialName,
+        mobile_phone: formData.mobilePhone,
         linkedin_url: formData.linkedinUrl,
         github_url: formData.githubUrl,
+        social_media_url: formData.socialMediaUrl,
+        lattes_url: formData.lattesUrl,
         is_open_to_mentoring: formData.isOpenToMentoring,
         updated_at: new Date().toISOString(),
     })

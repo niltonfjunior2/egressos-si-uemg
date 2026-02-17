@@ -22,6 +22,7 @@ export default async function FeedPage() {
       author_id,
       profiles:author_id (
         full_name,
+        social_name,
         avatar_url
       )
     `)

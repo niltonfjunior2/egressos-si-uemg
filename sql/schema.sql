@@ -94,10 +94,12 @@ CREATE TABLE public.profiles (
   email text,
   linkedin_url text,
   github_url text,
-  avatar_url text,
   is_open_to_mentoring boolean DEFAULT false,
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
+  mobile_phone text,
+  social_media_url text,
+  lattes_url text,
   CONSTRAINT profiles_pkey PRIMARY KEY (id),
   CONSTRAINT profiles_id_fkey FOREIGN KEY (id) REFERENCES auth.users(id)
 );

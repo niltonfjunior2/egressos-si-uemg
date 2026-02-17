@@ -1,9 +1,32 @@
+// Manual types since database.types.ts is missing
+export interface Profile {
+  id: string;
+  full_name: string;
+  social_name?: string | null;
+  mobile_phone?: string | null;
+  email?: string | null;
+  linkedin_url?: string | null;
+  github_url?: string | null;
+  social_media_url?: string | null; // Replaces avatar_url
+  is_open_to_mentoring?: boolean | null;
+  role?: string;
+  avatar_url?: string | null; // Keep for legacy if needed, but logic uses social
+}
 
-import { Database } from "@/utils/supabase/database.types";
+export interface AcademicRecord {
+  id: string;
+  status: string | null;
+  graduation_year: number | null;
+  entry_year: number | null;
+}
 
-type Profile = Database["public"]["Tables"]["profiles"]["Row"];
-type AcademicRecord = Database["public"]["Tables"]["academic_records"]["Row"];
-type ProfessionalHistory = Database["public"]["Tables"]["professional_history"]["Row"];
+export interface ProfessionalHistory {
+  id: string;
+  company_name: string;
+  role_title: string;
+  is_current: boolean | null;
+  tech_stack: string[] | null; // Array of strings
+}
 
 export interface ProfileCompletionStats {
   score: number;
@@ -28,11 +51,11 @@ export function calculateProfileStats(
   }
 
   // 1. Identidade (30%)
-  // +10% Avatar
-  if (profile.avatar_url) {
+  // +10% Rede Social (was Avatar)
+  if (profile.social_media_url) {
     score += 10;
   } else {
-    missingFields.push("Foto de Perfil");
+    missingFields.push("Rede Social");
   }
 
   // +10% LinkedIn
@@ -52,9 +75,7 @@ export function calculateProfileStats(
 
   // 2. Vínculo Acadêmico (30%)
   const hasGraduation = academic?.some(
-    (record) => record.status === "formado" // && record.graduation_year (implied if Status formed?)
-      // Instruction: "status = 'formado' e graduation_year preenchido"
-      && record.graduation_year
+    (record) => record.status === "formado" && record.graduation_year
   );
 
   if (hasGraduation) {
@@ -64,10 +85,20 @@ export function calculateProfileStats(
   }
 
   // 3. Situação Profissional (40%)
+  // Split: 20% for having history, 20% for having tech stack
   if (professional && professional.length > 0) {
-    score += 40;
+    score += 20;
+
+    const hasTechStack = professional.some((p) => p.tech_stack && p.tech_stack.length > 0);
+    if (hasTechStack) {
+      score += 20;
+    } else {
+      missingFields.push("Stack Tecnológico");
+    }
   } else {
     missingFields.push("Histórico Profissional");
+    // If no history, they miss both points naturally, but we explicitly list History.
+    // We could list Stack too, but History is the blocker.
   }
 
   return {

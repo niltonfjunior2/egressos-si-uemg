@@ -194,3 +194,21 @@ if (error?.code === '23505') {
 
 **Contexto:** Adição de colunas e alteração de constraints em tabelas existentes (`opportunities`).
 **Solução:** Uso de scripts SQL idempotentes (`ADD COLUMN IF NOT EXISTS`, `DROP CONSTRAINT IF EXISTS`) para evitar erros em múltiplas execuções.
+
+### [2026-02-17] - [NEXTJS/AUTH] Sessão "Stale" no Middleware Após Signout
+
+**Contexto:** Após `signOut()` na Server Action, o `redirect('/login')` é interceptado pelo middleware, que ainda lê cookies de sessão antigos e redireciona o usuário de volta para `/profile` (ou `/`). O resultado é que o usuário nunca chega à tela de login.
+**Solução:** Adicionar query parameter `?signedout=true` na URL de redirect e verificar no middleware para pular o check de "usuário logado tentando acessar login".
+**Prevenção:** Em fluxos de logout com `redirect` server-side, considerar que os cookies podem não estar sincronizados entre a Server Action e o Middleware na mesma request. Usar flags/query params para sinalizar transições de estado de autenticação.
+
+### [2026-02-17] - [ARCH] Filtragem por Role no Diretório Público
+
+**Contexto:** O Diretório de Egressos exibia todos os perfis do banco, incluindo Professores, Coordenadores e Administradores.
+**Solução:** Adicionar `.in('role', ['aluno', 'egresso'])` na query do Supabase em `searchProfiles`.
+**Prevenção:** Queries de listagem pública devem sempre filtrar por role para evitar exposição de dados de usuários administrativos. Nunca confiar no RLS sozinho para separação de conteúdo exibido — filtrar explicitamente no código.
+
+### [2026-02-17] - [ARCH/DB] Evolução Incremental do Schema de Perfil
+
+**Contexto:** O `profiles` evoluiu ao longo de várias sessões com adição de novos campos (`mobile_phone`, `social_media_url`, `lattes_url`) e remoção de outros (`avatar_url`). Cada alteração exigiu atualização sincronizada em: 1) SQL migration, 2) Zod schema, 3) Server Action, 4) UI (Wizard + View).
+**Solução:** Seguir sempre o fluxo: `SQL → Schema/Types → Action → UI`. Manter `sql/schema.sql` como fonte de verdade e atualizá-lo a cada mudança.
+**Prevenção:** Ao adicionar um campo ao perfil, criar checklist mental: coluna no banco → validação Zod → action de save → input no wizard → exibição na view. Pular qualquer etapa resulta em dados que não persistem ou não aparecem.

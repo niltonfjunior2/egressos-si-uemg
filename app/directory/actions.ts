@@ -21,17 +21,19 @@ export async function searchProfiles(query: string = '') {
         role_title,
         company_name,
         is_current,
-        start_date
+        start_date,
+        tech_stack
       ),
       academic_records (
         status
       )
     `)
         .order('full_name', { ascending: true })
+        .in('role', ['aluno', 'egresso'])
 
     // Apply search filter if query provided
     if (query.trim().length > 0) {
-        queryBuilder = queryBuilder.ilike('full_name', `%${query}%`)
+        queryBuilder = queryBuilder.or(`full_name.ilike.%${query}%,social_name.ilike.%${query}%`)
     }
 
     const { data, error } = await queryBuilder

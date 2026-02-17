@@ -35,9 +35,32 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Switch } from "@/components/ui/switch";
 
 // Define strict types for the steps
-type Step = 1 | 2 | 3 | 4 | 5;
+type Step = 1 | 2 | 3 | 4 | 5 | 6;
+
+const usefulAreasOptions = [
+    "Desenvolvimento de Software",
+    "Gestão e Negócios",
+    "Infraestrutura e Redes",
+    "Matemática e Teoria",
+    "Banco de Dados"
+];
+
+const softSkillsOptions = [
+    "Liderança e Gestão",
+    "Comunicação e Oratória",
+    "Inglês Técnico",
+    "Metodologias Ágeis",
+    "Inteligência Emocional"
+];
+
+const methodologyOptions = [
+    "Mais aulas práticas em laboratório",
+    "Mais projetos reais com empresas",
+    "Mais base teórica e científica"
+];
 
 // Props
 interface ProfileWizardProps {
@@ -61,24 +84,37 @@ export function ProfileWizard({
     const [step, setStep] = useState<Step>(1);
     const [loading, setLoading] = useState(false);
 
+
+
     // --- State Management ---
 
     // Step 1: Personal
     const [personalData, setPersonalData] = useState({
         // Pre-fill from Profile OR User Metadata
         fullName: initialProfile?.full_name || user?.user_metadata?.full_name || user?.user_metadata?.name || "",
+        socialName: initialProfile?.social_name || "",
+        mobilePhone: initialProfile?.mobile_phone || "",
         linkedinUrl: initialProfile?.linkedin_url || "",
+        githubUrl: initialProfile?.github_url || "",
+        socialMediaUrl: initialProfile?.social_media_url || "",
+        lattesUrl: initialProfile?.lattes_url || "",
+        entryYear: initialAcademic?.find((a: any) => a.status === 'formado')?.entry_year?.toString() || "",
         graduationYear: initialAcademic?.find((a: any) => a.status === 'formado')?.graduation_year?.toString() || "",
     });
 
     // Step 2: Professional (Focus on ADDING current/latest role)
+    const latestProfessional = initialProfessional?.find((p: any) => p.is_current) || initialProfessional?.[0];
+
     const [professionalData, setProfessionalData] = useState({
-        companyName: "",
-        roleTitle: "",
-        startDate: "",
-        isCurrent: true,
-        salaryRange: "",
+        companyName: latestProfessional?.company_name || "",
+        roleTitle: latestProfessional?.role_title || "",
+        startDate: latestProfessional?.start_date ? new Date(latestProfessional.start_date).toISOString().split('T')[0] : "",
+        isCurrent: latestProfessional?.is_current ?? true,
+        salaryRange: latestProfessional?.salary_range || "",
+        techStack: latestProfessional?.tech_stack?.join(", ") || "",
     });
+
+
 
     // Step 3: Education (Manage List + Add New)
     const [educationList, setEducationList] = useState<any[]>(initialEducation || []);
@@ -91,20 +127,33 @@ export function ProfileWizard({
     const [isAddingEducation, setIsAddingEducation] = useState(false);
 
     // Step 4: Survey
+    // Helper to extract "Other" value
+    const extractOther = (allValues: string[], standardOptions: string[]) => {
+        const otherVal = allValues?.find(v => !standardOptions.includes(v));
+        const filtered = allValues?.filter(v => standardOptions.includes(v)) || [];
+        if (otherVal) return { list: [...filtered, "Outro"], otherText: otherVal };
+        return { list: filtered, otherText: "" };
+    }
+
+    const initUseful = extractOther(initialSurvey?.most_useful_areas, usefulAreasOptions);
+    const initSoft = extractOther(initialSurvey?.soft_skills_desired, softSkillsOptions);
+    const initMethod = extractOther(initialSurvey?.methodology_priority, methodologyOptions);
+
     const [surveyData, setSurveyData] = useState({
         missingTechnologies: initialSurvey?.missing_technologies || "",
-        mostUsefulAreas: initialSurvey?.most_useful_areas || [] as string[],
-        softSkillsDesired: initialSurvey?.soft_skills_desired || [] as string[],
-        methodologyPriority: initialSurvey?.methodology_priority || [] as string[],
+        mostUsefulAreas: initUseful.list,
+        softSkillsDesired: initSoft.list,
+        methodologyPriority: initMethod.list,
         employabilityImpact: initialSurvey?.employability_impact?.toString() || "3",
         // Helper states for "Other" inputs
-        otherUsefulArea: "",
-        otherSoftSkill: "",
-        otherMethodology: "",
+        otherUsefulArea: initUseful.otherText,
+        otherSoftSkill: initSoft.otherText,
+        otherMethodology: initMethod.otherText,
     });
 
-    // Step 5: Suggestions
+    // Step 5: Suggestions & Mentoring
     const [suggestions, setSuggestions] = useState(initialSurvey?.suggestions || "");
+    const [isOpenToMentoring, setIsOpenToMentoring] = useState(initialProfile?.is_open_to_mentoring ?? true);
 
 
     // --- Actions ---
@@ -116,10 +165,32 @@ export function ProfileWizard({
         item: string
     ) => {
         if (list.includes(item)) {
-            setList(list.filter((i) => i !== item));
+            setList(list.filter((i: string) => i !== item));
         } else {
             setList([...list, item]);
         }
+    };
+
+    // Calculate completion percentage
+    const calculateCompleteness = () => {
+        const fields = [
+            personalData.linkedinUrl,
+            personalData.githubUrl,
+            personalData.mobilePhone,
+            personalData.socialMediaUrl,
+            personalData.lattesUrl,
+            professionalData.techStack,
+            surveyData.missingTechnologies,
+            surveyData.mostUsefulAreas.length > 0,
+            surveyData.softSkillsDesired.length > 0,
+            surveyData.methodologyPriority.length > 0,
+            surveyData.employabilityImpact,
+            professionalData.companyName,
+            professionalData.roleTitle,
+            professionalData.startDate
+        ];
+        const filled = fields.filter(f => f).length;
+        return Math.round((filled / fields.length) * 100);
     };
 
     const handleNext = async () => {
@@ -128,23 +199,34 @@ export function ProfileWizard({
 
         try {
             if (step === 1) {
+                // Validation: Mandatory fields
+                if (!personalData.fullName.trim() || !personalData.graduationYear || !personalData.entryYear) {
+                    toast.error("Por favor, preencha Nome, Ano de Ingresso e Ano de Graduação (formaturas futuras aceitas).");
+                    setLoading(false);
+                    return;
+                }
+
                 // Update Profile & Academic
                 const profileRes = await updateProfile({
                     fullName: personalData.fullName,
+                    socialName: personalData.socialName,
+                    mobilePhone: personalData.mobilePhone,
                     linkedinUrl: personalData.linkedinUrl,
-                    isOpenToMentoring: initialProfile?.is_open_to_mentoring || false,
+                    githubUrl: personalData.githubUrl,
+                    socialMediaUrl: personalData.socialMediaUrl,
+                    lattesUrl: personalData.lattesUrl,
+                    isOpenToMentoring: isOpenToMentoring,
                 } as any);
 
                 if (profileRes.error) throw new Error(profileRes.error);
 
-                if (personalData.graduationYear) {
-                    await addAcademicRecord({
-                        entryYear: parseInt(personalData.graduationYear) - 4, // Estimate
-                        graduationYear: parseInt(personalData.graduationYear),
-                        status: "formado",
-                        studentIdCode: "",
-                    } as any);
-                }
+                await addAcademicRecord({
+                    entryYear: parseInt(personalData.entryYear),
+                    graduationYear: parseInt(personalData.graduationYear),
+                    status: "formado",
+                    studentIdCode: "",
+                } as any);
+
                 success = true;
 
             } else if (step === 2) {
@@ -156,6 +238,7 @@ export function ProfileWizard({
                         startDate: new Date(professionalData.startDate),
                         isCurrent: true,
                         salaryRange: professionalData.salaryRange,
+                        techStack: professionalData.techStack,
                     } as any);
                 }
                 success = true;
@@ -189,15 +272,15 @@ export function ProfileWizard({
                 await submitSurvey({
                     missingTechnologies: surveyData.missingTechnologies,
                     mostUsefulAreas: [
-                        ...surveyData.mostUsefulAreas.filter(i => i !== 'Outro'),
+                        ...surveyData.mostUsefulAreas.filter((i: string) => i !== 'Outro'),
                         surveyData.mostUsefulAreas.includes('Outro') ? surveyData.otherUsefulArea : ""
                     ].filter(Boolean),
                     softSkillsDesired: [
-                        ...surveyData.softSkillsDesired.filter(i => i !== 'Outro'),
+                        ...surveyData.softSkillsDesired.filter((i: string) => i !== 'Outro'),
                         surveyData.softSkillsDesired.includes('Outro') ? surveyData.otherSoftSkill : ""
                     ].filter(Boolean),
                     methodologyPriority: [
-                        ...surveyData.methodologyPriority.filter(i => i !== 'Outro'),
+                        ...surveyData.methodologyPriority.filter((i: string) => i !== 'Outro'),
                         surveyData.methodologyPriority.includes('Outro') ? surveyData.otherMethodology : ""
                     ].filter(Boolean),
                     employabilityImpact: parseInt(surveyData.employabilityImpact),
@@ -205,19 +288,33 @@ export function ProfileWizard({
                 });
                 success = true;
             } else if (step === 5) {
-                // Save Survey Final (Suggestions)
+                // NEW STEP 5: Mentoring ONLY
+                await updateProfile({
+                    fullName: personalData.fullName,
+                    socialName: personalData.socialName,
+                    mobilePhone: personalData.mobilePhone,
+                    linkedinUrl: personalData.linkedinUrl,
+                    githubUrl: personalData.githubUrl,
+                    socialMediaUrl: personalData.socialMediaUrl,
+                    lattesUrl: personalData.lattesUrl,
+                    isOpenToMentoring: isOpenToMentoring,
+                } as any);
+                success = true;
+
+            } else if (step === 6) {
+                // NEW STEP 6: Finalize (Suggestions)
                 await submitSurvey({
                     missingTechnologies: surveyData.missingTechnologies,
                     mostUsefulAreas: [
-                        ...surveyData.mostUsefulAreas.filter(i => i !== 'Outro'),
+                        ...surveyData.mostUsefulAreas.filter((i: string) => i !== 'Outro'),
                         surveyData.mostUsefulAreas.includes('Outro') ? surveyData.otherUsefulArea : ""
                     ].filter(Boolean),
                     softSkillsDesired: [
-                        ...surveyData.softSkillsDesired.filter(i => i !== 'Outro'),
+                        ...surveyData.softSkillsDesired.filter((i: string) => i !== 'Outro'),
                         surveyData.softSkillsDesired.includes('Outro') ? surveyData.otherSoftSkill : ""
                     ].filter(Boolean),
                     methodologyPriority: [
-                        ...surveyData.methodologyPriority.filter(i => i !== 'Outro'),
+                        ...surveyData.methodologyPriority.filter((i: string) => i !== 'Outro'),
                         surveyData.methodologyPriority.includes('Outro') ? surveyData.otherMethodology : ""
                     ].filter(Boolean),
                     employabilityImpact: parseInt(surveyData.employabilityImpact),
@@ -227,7 +324,7 @@ export function ProfileWizard({
             }
 
             if (success) {
-                if (step < 5) {
+                if (step < 6) {
                     setStep((s) => (s + 1) as Step);
                 } else {
                     toast.success("Perfil atualizado com sucesso!");
@@ -298,11 +395,16 @@ export function ProfileWizard({
                     <div className="flex justify-between items-center mb-4">
                         <div>
                             <CardTitle className="text-2xl">Atualização de Perfil</CardTitle>
-                            <CardDescription>Mantenha seus dados atualizados para fortalecer nossa rede.</CardDescription>
+                            <div className="flex gap-2 items-center">
+                                <CardDescription>Mantenha seus dados atualizados.</CardDescription>
+                                <span className={`text-xs font-bold px-2 py-0.5 rounded-full border ${calculateCompleteness() === 100 ? 'bg-green-100 text-green-700 border-green-200' : 'bg-yellow-100 text-yellow-700 border-yellow-200'}`}>
+                                    Força do Perfil: {calculateCompleteness()}%
+                                </span>
+                            </div>
                         </div>
-                        <span className="text-sm font-bold bg-muted px-3 py-1 rounded-full">Passo {step} de 5</span>
+                        <span className="text-sm font-bold bg-muted px-3 py-1 rounded-full">Passo {step} de 6</span>
                     </div>
-                    <Progress value={(step / 5) * 100} className="h-2" />
+                    <Progress value={(step / 6) * 100} className="h-2" />
                 </CardHeader>
                 <CardContent className="py-6 space-y-6">
 
@@ -322,7 +424,7 @@ export function ProfileWizard({
                             <h3 className="text-lg font-semibold">Dados Pessoais</h3>
                             <div className="grid gap-4 md:grid-cols-2">
                                 <div className="space-y-2">
-                                    <Label>Nome Completo</Label>
+                                    <Label>Nome Completo <span className="text-red-500">*</span></Label>
                                     <Input
                                         value={personalData.fullName}
                                         onChange={(e) => setPersonalData({ ...personalData, fullName: e.target.value })}
@@ -330,7 +432,24 @@ export function ProfileWizard({
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label>Ano de Graduação</Label>
+                                    <Label>Nome Social (Como prefere ser chamado)</Label>
+                                    <Input
+                                        value={personalData.socialName}
+                                        onChange={(e) => setPersonalData({ ...personalData, socialName: e.target.value })}
+                                        placeholder="Ex: Apelido ou nome social"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>Ano de Ingresso no Curso <span className="text-red-500">*</span></Label>
+                                    <Input
+                                        type="number"
+                                        value={personalData.entryYear}
+                                        onChange={(e) => setPersonalData({ ...personalData, entryYear: e.target.value })}
+                                        placeholder="Ex: 2021"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>Ano de Graduação <span className="text-red-500">*</span></Label>
                                     <Input
                                         type="number"
                                         value={personalData.graduationYear}
@@ -339,12 +458,52 @@ export function ProfileWizard({
                                     />
                                     <p className="text-xs text-muted-foreground">Se ainda não se formou, deixe em branco.</p>
                                 </div>
-                                <div className="space-y-2 md:col-span-2">
+                                <div className="space-y-2">
+                                    <Label>Celular / WhatsApp</Label>
+                                    <Input
+                                        value={personalData.mobilePhone}
+                                        onChange={(e) => setPersonalData({ ...personalData, mobilePhone: e.target.value })}
+                                        placeholder="(DD) 99999-9999"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>E-mail</Label>
+                                    <Input
+                                        value={user?.email || ""}
+                                        disabled
+                                        className="bg-muted text-muted-foreground"
+                                    />
+                                </div>
+                                <div className="space-y-2">
                                     <Label>LinkedIn (URL)</Label>
                                     <Input
                                         value={personalData.linkedinUrl}
                                         onChange={(e) => setPersonalData({ ...personalData, linkedinUrl: e.target.value })}
                                         placeholder="https://linkedin.com/in/seu-perfil"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>GitHub (URL)</Label>
+                                    <Input
+                                        value={personalData.githubUrl}
+                                        onChange={(e) => setPersonalData({ ...personalData, githubUrl: e.target.value })}
+                                        placeholder="https://github.com/seu-usuario"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>Redes Sociais (URL)</Label>
+                                    <Input
+                                        value={personalData.socialMediaUrl}
+                                        onChange={(e) => setPersonalData({ ...personalData, socialMediaUrl: e.target.value })}
+                                        placeholder="Instagram, Twitter, etc."
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>Currículo Lattes (URL)</Label>
+                                    <Input
+                                        value={personalData.lattesUrl}
+                                        onChange={(e) => setPersonalData({ ...personalData, lattesUrl: e.target.value })}
+                                        placeholder="http://lattes.cnpq.br/..."
                                     />
                                 </div>
                             </div>
@@ -399,6 +558,16 @@ export function ProfileWizard({
                                             <SelectItem value=">15k">Acima de R$ 15.000</SelectItem>
                                         </SelectContent>
                                     </Select>
+                                </div>
+                                <div className="space-y-2 md:col-span-2">
+                                    <Label>Tecnologias Utilizadas (Stack)</Label>
+                                    <Textarea
+                                        value={professionalData.techStack}
+                                        onChange={(e) => setProfessionalData({ ...professionalData, techStack: e.target.value })}
+                                        placeholder="Ex: React, Node.js, Python, AWS (separe por vírgulas)"
+                                        className="min-h-[80px]"
+                                    />
+                                    <p className="text-xs text-muted-foreground">Liste as principais tecnologias com as quais você trabalha.</p>
                                 </div>
                             </div>
                         </div>
@@ -493,14 +662,7 @@ export function ProfileWizard({
                             <div className="space-y-3">
                                 <Label>Quais eixos do curso foram mais úteis para você?</Label>
                                 <div className="grid gap-2 sm:grid-cols-2">
-                                    {[
-                                        "Desenvolvimento de Software",
-                                        "Gestão e Negócios",
-                                        "Infraestrutura e Redes",
-                                        "Matemática e Teoria",
-                                        "Banco de Dados",
-                                        "Outro"
-                                    ].map((item) => (
+                                    {[...usefulAreasOptions, "Outro"].map((item) => (
                                         <div key={item} className="flex flex-col">
                                             <div className="flex items-center space-x-2">
                                                 <Checkbox
@@ -530,14 +692,7 @@ export function ProfileWizard({
                             <div className="space-y-3">
                                 <Label>Qual competência comportamental deveria ser mais estimulada?</Label>
                                 <div className="grid gap-2 sm:grid-cols-2">
-                                    {[
-                                        "Liderança e Gestão",
-                                        "Comunicação e Oratória",
-                                        "Inglês Técnico",
-                                        "Metodologias Ágeis",
-                                        "Inteligência Emocional",
-                                        "Outro"
-                                    ].map((item) => (
+                                    {[...softSkillsOptions, "Outro"].map((item) => (
                                         <div key={item} className="flex flex-col">
                                             <div className="flex items-center space-x-2">
                                                 <Checkbox
@@ -567,12 +722,7 @@ export function ProfileWizard({
                             <div className="space-y-3">
                                 <Label>O que você priorizaria na metodologia de ensino?</Label>
                                 <div className="space-y-2">
-                                    {[
-                                        "Mais aulas práticas em laboratório",
-                                        "Mais projetos reais com empresas",
-                                        "Mais base teórica e científica",
-                                        "Outro"
-                                    ].map((item) => (
+                                    {[...methodologyOptions, "Outro"].map((item) => (
                                         <div key={item} className="flex flex-col">
                                             <div className="flex items-center space-x-2">
                                                 <Checkbox
@@ -627,6 +777,57 @@ export function ProfileWizard({
                     {step === 5 && (
                         <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
                             <div className="text-center space-y-2">
+                                <h3 className="text-xl font-bold">Mentoria Voluntária</h3>
+                                <p className="text-muted-foreground">Compartilhe sua experiência com quem está começando.</p>
+                            </div>
+
+                            <Card className={`border-2 transition-all duration-300 ${isOpenToMentoring ? 'border-primary bg-blue-50/50 dark:bg-blue-950/20 shadow-md' : 'border-muted bg-muted/20'}`}>
+                                <CardHeader className="pb-2">
+                                    <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+                                        <div className="space-y-1">
+                                            <CardTitle className="text-lg text-primary">
+                                                Disponível para Mentoria
+                                            </CardTitle>
+                                            <CardDescription className="text-muted-foreground font-medium">
+                                                Ideal para egressos que já são Seniors ou Líderes
+                                            </CardDescription>
+                                        </div>
+
+                                        <div className={`flex items-center gap-3 bg-background p-2 rounded-full border-2 shadow-sm transition-all ${isOpenToMentoring ? 'border-primary/50' : 'border-slate-300 dark:border-slate-600'}`}>
+                                            <Switch
+                                                checked={isOpenToMentoring}
+                                                onCheckedChange={setIsOpenToMentoring}
+                                                className="data-[state=checked]:bg-primary scale-125 mr-2 ml-1"
+                                            />
+                                            {isOpenToMentoring && (
+                                                <span className="text-sm font-bold text-primary animate-in fade-in slide-in-from-left-2 pr-2">
+                                                    Concordo em ser um mentor!
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
+                                </CardHeader>
+                                <CardContent className="text-sm text-muted-foreground space-y-3 pt-4">
+                                    <p>
+                                        Marque esta opção se você aceita receber contatos pontuais de alunos para tirar dúvidas sobre carreira e mercado. Compartilhe sua experiência profissional e ajude a diminuir a distância entre a sala de aula e o mundo real. Sem compromisso de horas fixas, apenas networking e colaboração.
+                                    </p>
+                                    <p>
+                                        A mentoria é uma via de mão dupla. Ao orientar alunos sobre as tecnologias e posturas que o mercado exige, você ajuda a formar profissionais melhores e, quem sabe, identifica futuros talentos para a sua própria equipe. Transforme sua experiência em impacto.
+                                    </p>
+                                    {isOpenToMentoring && (
+                                        <div className="flex items-center gap-2 mt-4 text-xs font-semibold text-amber-600 dark:text-amber-500 bg-amber-50 dark:bg-amber-950/30 p-3 rounded-md border border-amber-200 dark:border-amber-800 animate-in zoom-in-95 duration-300">
+                                            <ShieldCheck className="w-5 h-5 flex-shrink-0" />
+                                            <span>Atenção: apenas o e-mail cadastrado e o perfil de rede social serão exibidos para alunos logados que buscarem mentoria.</span>
+                                        </div>
+                                    )}
+                                </CardContent>
+                            </Card>
+                        </div>
+                    )}
+
+                    {step === 6 && (
+                        <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+                            <div className="text-center space-y-2">
                                 <CheckCircle2 className="w-16 h-16 text-green-500 mx-auto" />
                                 <h3 className="text-xl font-bold">Último passo!</h3>
                                 <p className="text-muted-foreground">Algo mais que queira nos dizer?</p>
@@ -658,7 +859,7 @@ export function ProfileWizard({
                         <ChevronLeft className="w-4 h-4 mr-2" /> Voltar
                     </Button>
                     <Button onClick={handleNext} disabled={loading} className="w-32">
-                        {step === 5 ? "Finalizar" : "Próximo"} <ChevronRight className="w-4 h-4 ml-2" />
+                        {step === 6 ? "Finalizar" : "Próximo"} <ChevronRight className="w-4 h-4 ml-2" />
                     </Button>
                 </CardFooter>
             </Card>

@@ -3,6 +3,8 @@ import { UserFormDialog } from './user-form-dialog'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
+import { Progress } from "@/components/ui/progress"
+import { calculateProfileStats } from "@/hooks/use-profile-completion"
 import {
     Table,
     TableBody,
@@ -120,12 +122,7 @@ export default async function UsersPage({
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            import {calculateProfileStats} from "@/hooks/use-profile-completion"
-                            import {Progress} from "@/components/ui/progress" // Assuming shadcn progress is available
 
-                            // ... (existing imports)
-
-                            // ... (UsersPage function start)
 
                             <TableHead>Nome</TableHead>
                             <TableHead>Email</TableHead>
@@ -200,7 +197,8 @@ export default async function UsersPage({
                                             </div>
                                         </TableCell>
                                     </TableRow>
-                                ))
+                                )
+                            })
                         ) : (
                             <TableRow>
                                 <TableCell colSpan={5} className="h-24 text-center">

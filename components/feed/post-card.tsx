@@ -35,7 +35,7 @@ export function PostCard({ post, currentUserId }: PostCardProps) {
         }
     }
 
-    const authorName = post.profiles?.full_name || "Usuário Desconhecido"
+    const authorName = post.profiles?.social_name || post.profiles?.full_name || "Usuário Desconhecido"
     const initials = authorName.slice(0, 2).toUpperCase()
     const isAuthor = currentUserId === post.author_id
 

@@ -9,7 +9,9 @@ import {
     Briefcase,
     Search,
     LogOut,
-    Home
+
+    Settings,
+    UserCog
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -35,18 +37,7 @@ export function PortalSidebar({ user }: { user: any }) {
             </div>
 
             <nav className="flex-1 px-4 py-4 space-y-1 overflow-y-auto">
-                <Link
-                    href="/feed"
-                    className={cn(
-                        "flex items-center px-4 py-3 rounded-lg transition-colors group",
-                        isActive("/feed")
-                            ? "bg-white/10 border-l-4 border-blue-500 rounded-l-none"
-                            : "hover:bg-white/10"
-                    )}
-                >
-                    <Home className="mr-3 h-5 w-5 opacity-80 group-hover:opacity-100" />
-                    <span className="font-medium">Feed</span>
-                </Link>
+
 
                 <Link
                     href="/profile"
@@ -83,6 +74,32 @@ export function PortalSidebar({ user }: { user: any }) {
                 >
                     <Briefcase className="mr-3 h-5 w-5 opacity-80 group-hover:opacity-100" />
                     <span className="font-medium">Vagas</span>
+                </Link>
+
+                <Link
+                    href="/coordinator"
+                    className={cn(
+                        "flex items-center px-4 py-3 rounded-lg transition-colors group",
+                        isActive("/coordinator")
+                            ? "bg-white/10 border-l-4 border-blue-500 rounded-l-none"
+                            : "hover:bg-white/10"
+                    )}
+                >
+                    <UserCog className="mr-3 h-5 w-5 opacity-80 group-hover:opacity-100" />
+                    <span className="font-medium">Coordenação</span>
+                </Link>
+
+                <Link
+                    href="/settings"
+                    className={cn(
+                        "flex items-center px-4 py-3 rounded-lg transition-colors group",
+                        isActive("/settings")
+                            ? "bg-white/10 border-l-4 border-blue-500 rounded-l-none"
+                            : "hover:bg-white/10"
+                    )}
+                >
+                    <Settings className="mr-3 h-5 w-5 opacity-80 group-hover:opacity-100" />
+                    <span className="font-medium">Configurações</span>
                 </Link>
             </nav>
 

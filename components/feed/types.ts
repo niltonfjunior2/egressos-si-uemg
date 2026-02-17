@@ -5,6 +5,7 @@ export type Post = {
     author_id: string
     profiles: {
         full_name: string
+        social_name: string | null
         avatar_url: string | null
     } | null
 }
