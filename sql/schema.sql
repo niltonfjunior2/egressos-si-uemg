@@ -72,6 +72,20 @@ CREATE TABLE public.professional_history (
   CONSTRAINT professional_history_pkey PRIMARY KEY (id),
   CONSTRAINT professional_history_profile_id_fkey FOREIGN KEY (profile_id) REFERENCES public.profiles(id)
 );
+CREATE TABLE public.profile_surveys (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  profile_id uuid NOT NULL UNIQUE,
+  missing_technologies text,
+  most_useful_areas ARRAY,
+  soft_skills_desired ARRAY,
+  methodology_priority ARRAY,
+  employability_impact integer CHECK (employability_impact >= 1 AND employability_impact <= 5),
+  suggestions text,
+  created_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
+  updated_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
+  CONSTRAINT profile_surveys_pkey PRIMARY KEY (id),
+  CONSTRAINT profile_surveys_profile_id_fkey FOREIGN KEY (profile_id) REFERENCES public.profiles(id)
+);
 CREATE TABLE public.profiles (
   id uuid NOT NULL,
   role USER-DEFINED NOT NULL DEFAULT 'aluno'::user_role,

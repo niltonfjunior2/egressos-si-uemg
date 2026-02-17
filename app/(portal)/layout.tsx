@@ -1,8 +1,9 @@
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
 import { createClient } from "@/utils/supabase/server"
 import { redirect } from "next/navigation"
-import { signout } from "@/app/auth/actions"
+import Link from "next/link"
+import { ProfileScoreCard } from "@/components/profile-completion/profile-score-card"
+import { calculateProfileStats } from "@/hooks/use-profile-completion"
+import { PortalSidebar } from "./portal-sidebar"
 
 export default async function PortalLayout({
     children,
@@ -17,85 +18,77 @@ export default async function PortalLayout({
         redirect('/login')
     }
 
+    // Fetch data for profile completion calculation
+    const { data: profile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single()
+
+    const { data: academic } = await supabase
+        .from('academic_records')
+        .select('*')
+        .eq('profile_id', user.id)
+
+    const { data: professional } = await supabase
+        .from('professional_history')
+        .select('*')
+        .eq('profile_id', user.id)
+
+    const stats = calculateProfileStats(profile, academic, professional)
+
     return (
-        <div className="relative flex min-h-screen flex-col overflow-hidden bg-slate-950 text-slate-200">
-            {/* Background Effects */}
-            <div className="absolute inset-0 hero-gradient z-0 pointer-events-none"></div>
-            <div className="absolute top-0 right-0 w-1/2 h-1/2 bg-primary/10 blur-[120px] rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
-            <div className="absolute bottom-0 left-0 w-1/2 h-1/2 bg-blue-500/10 blur-[120px] rounded-full translate-y-1/2 -translate-x-1/2 pointer-events-none"></div>
+        <div className="flex min-h-screen bg-slate-100 dark:bg-slate-950 text-slate-800 dark:text-slate-100 font-sans transition-colors duration-200">
+            {/* Sidebar */}
+            <PortalSidebar user={user} />
 
-            <header className="sticky top-0 z-50 w-full border-b border-white/10 bg-white/5 backdrop-blur-md supports-[backdrop-filter]:bg-white/5">
-                <div className="container flex h-16 items-center">
-                    <div className="mr-4 hidden md:flex">
-                        <Link className="mr-6 flex items-center space-x-2" href="/feed">
-                            {/* Use logo or icon here if available, for now just text */}
-                            <span className="hidden font-bold sm:inline-block text-white">
-                                Acompanhamento de Egressos
-                            </span>
-                        </Link>
-                        <nav className="flex items-center space-x-6 text-sm font-medium">
-                            <Link
-                                href="/feed"
-                                className="transition-colors hover:text-white text-slate-400"
-                            >
-                                Feed
-                            </Link>
-                            <Link
-                                href="/profile"
-                                className="transition-colors hover:text-white text-slate-400"
-                            >
-                                Meu Perfil
-                            </Link>
-                            <Link
-                                href="/directory"
-                                className="transition-colors hover:text-white text-slate-400"
-                            >
-                                Diretório
-                            </Link>
-                            <Link
-                                href="/jobs"
-                                className="transition-colors hover:text-white text-slate-400"
-                            >
-                                Vagas
-                            </Link>
-                        </nav>
+            {/* Main Content Wrapper */}
+            <div className="flex-1 flex flex-col md:ml-64 transition-all duration-300 ease-in-out">
+                {/* Header */}
+                <header className="h-16 bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 flex items-center justify-between px-8 shadow-sm">
+                    <div className="flex items-center space-x-4">
+                        <h1 className="text-xl font-bold text-primary dark:text-blue-400">
+                            Portal do Egresso
+                        </h1>
+                        <span className="text-gray-400">/</span>
+                        <span className="text-gray-500 dark:text-gray-400 font-medium text-sm">
+                            Visão Geral
+                        </span>
                     </div>
-                    <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
-                        <div className="w-full flex-1 md:w-auto md:flex-none">
-                            {/* Search to come */}
-                        </div>
-                        <nav className="flex items-center">
-                            <div className="text-slate-400 text-sm mr-4 hidden md:block">
-                                {user.email}
+
+                    <div className="flex items-center space-x-6">
+                        <div className="flex items-center space-x-3 border-l pl-6 border-gray-200 dark:border-slate-700">
+                            <div className="text-right hidden sm:block">
+                                <p className="text-sm font-bold">{profile?.full_name || user.email}</p>
+                                <p className="text-xs text-gray-500 capitalize">{profile?.role || 'Usuário'}</p>
                             </div>
-                            <form action={signout}>
-                                <Button variant="ghost" size="sm" className="text-slate-300 hover:text-white hover:bg-white/10">
-                                    Sair
-                                </Button>
-                            </form>
-                        </nav>
+                            {/* Avatar Fallback */}
+                            <div className="h-10 w-10 rounded-full border-2 border-primary shadow-sm bg-gray-200 overflow-hidden">
+                                {profile?.avatar_url ? (
+                                    <img src={profile.avatar_url} alt="Avatar" className="h-full w-full object-cover" />
+                                ) : (
+                                    <div className="h-full w-full flex items-center justify-center text-gray-500 font-bold">
+                                        {(profile?.full_name || user.email || 'U').charAt(0).toUpperCase()}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
                     </div>
-                </div>
-            </header>
-            <main className="flex-1 relative z-10 container py-6">{children}</main>
+                </header>
 
-            <footer className="w-full border-t border-white/10 bg-white/5 py-6 text-center text-sm md:text-left relative z-10 backdrop-blur-sm">
-                <div className="container flex flex-col items-center justify-between gap-4 md:h-14 md:flex-row">
-                    <p className="text-slate-400">
-                        &copy; {new Date().getFullYear()} Sistemas de Informação - UEMG Carangola.
-                    </p>
-                    <div className="flex gap-4">
-                        <Link href="https://uemg.br" target="_blank" className="text-slate-400 hover:text-white hover:underline transition-colors">
-                            UEMG Oficial
-                        </Link>
-                        <Link href="https://github.com/niltonfjunior2/egressos-si-uemg" target="_blank" className="text-slate-400 hover:text-white hover:underline transition-colors">
-                            GitHub
-                        </Link>
-                    </div>
-                </div>
-            </footer>
+                {/* Main Content Area */}
+                <main className="flex-1 overflow-y-auto p-8 relative">
+                    {!stats.isComplete && (
+                        <div className="mb-6">
+                            <ProfileScoreCard stats={stats} />
+                        </div>
+                    )}
+                    {children}
+                    <footer className="mt-8 p-6 text-center text-xs text-gray-500 dark:text-gray-400 border-t border-gray-200 dark:border-slate-800">
+                        &copy; {new Date().getFullYear()} Unidade Carangola - UEMG | Sistemas de Informação.
+                    </footer>
+                </main>
+            </div>
         </div>
     )
 }
-
-import { Footer } from "@/components/footer"

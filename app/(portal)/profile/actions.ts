@@ -17,14 +17,15 @@ export async function updateProfile(formData: ProfileFormData) {
         return { error: 'Dados inválidos' }
     }
 
-    const { error } = await supabase.from('profiles').update({
+    const { error } = await supabase.from('profiles').upsert({
+        id: user.id,
         full_name: formData.fullName,
         social_name: formData.socialName,
         linkedin_url: formData.linkedinUrl,
         github_url: formData.githubUrl,
         is_open_to_mentoring: formData.isOpenToMentoring,
         updated_at: new Date().toISOString(),
-    }).eq('id', user.id)
+    })
 
     if (error) {
         return { error: 'Erro ao atualizar perfil' }

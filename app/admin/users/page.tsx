@@ -120,67 +120,87 @@ export default async function UsersPage({
                 <Table>
                     <TableHeader>
                         <TableRow>
+                            import {calculateProfileStats} from "@/hooks/use-profile-completion"
+                            import {Progress} from "@/components/ui/progress" // Assuming shadcn progress is available
+
+                            // ... (existing imports)
+
+                            // ... (UsersPage function start)
+
                             <TableHead>Nome</TableHead>
                             <TableHead>Email</TableHead>
                             <TableHead>Função</TableHead>
                             <TableHead>Cadastro</TableHead>
+                            <TableHead>Status Perfil</TableHead>
                             <TableHead className="text-right">Ações</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
                         {users && users.length > 0 ? (
-                            users.map((user: any) => (
-                                <TableRow key={user.id}>
-                                    <TableCell className="font-medium">{user.full_name}</TableCell>
-                                    <TableCell>{user.email}</TableCell>
-                                    <TableCell>
-                                        <Badge className={`${roleColors[user.role] || 'bg-gray-500'} hover:opacity-90`}>
-                                            {user.role}
-                                        </Badge>
-                                    </TableCell>
-                                    <TableCell>
-                                        {new Date(user.created_at).toLocaleDateString()}
-                                    </TableCell>
-                                    <TableCell className="text-right">
-                                        <div className="flex justify-end gap-2">
-                                            <UserFormDialog
-                                                userToEdit={user}
-                                                triggerArg={
-                                                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                                                        <MoreHorizontal className="h-4 w-4" />
-                                                        <span className="sr-only">Menu</span>
-                                                    </Button>
-                                                }
-                                            />
+                            users.map((user: any) => {
+                                const stats = calculateProfileStats(user, user.academic_records, user.professional_history)
+                                let statusColor = "bg-red-500"
+                                if (stats.score >= 50) statusColor = "bg-yellow-500"
+                                if (stats.score >= 100) statusColor = "bg-green-500"
 
-                                            <DropdownMenu>
-                                                <DropdownMenuTrigger asChild>
-                                                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                                                        <KeyRound className="h-4 w-4" />
-                                                    </Button>
-                                                </DropdownMenuTrigger>
-                                                <DropdownMenuContent align="end">
-                                                    <DropdownMenuLabel>Segurança</DropdownMenuLabel>
-                                                    <DropdownMenuItem
-                                                        className="text-destructive cursor-pointer"
-                                                    // Ideally create a specific dialog for reset password. 
-                                                    // For now, I'll allow deleting via this menu or a separate Delete Dialog.
-                                                    // Let's implement real Delete here.
-                                                    >
-                                                        <form action={deleteUserAction} className="w-full">
-                                                            <input type="hidden" name="id" value={user.id} />
-                                                            <button type="submit" className="flex items-center w-full">
-                                                                <Trash2 className="mr-2 h-4 w-4" />
-                                                                Excluir Usuário
-                                                            </button>
-                                                        </form>
-                                                    </DropdownMenuItem>
-                                                </DropdownMenuContent>
-                                            </DropdownMenu>
-                                        </div>
-                                    </TableCell>
-                                </TableRow>
-                            ))
+                                return (
+                                    <TableRow key={user.id}>
+                                        <TableCell className="font-medium">{user.full_name}</TableCell>
+                                        <TableCell>{user.email}</TableCell>
+                                        <TableCell>
+                                            <Badge className={`${roleColors[user.role] || 'bg-gray-500'} hover:opacity-90`}>
+                                                {user.role}
+                                            </Badge>
+                                        </TableCell>
+                                        <TableCell>
+                                            {new Date(user.created_at).toLocaleDateString()}
+                                        </TableCell>
+                                        <TableCell>
+                                            <div className="flex items-center gap-2">
+                                                <Progress value={stats.score} className="w-16 h-2" indicatorClassName={statusColor} />
+                                                <span className="text-xs text-muted-foreground">{stats.score}%</span>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell className="text-right">
+                                            <div className="flex justify-end gap-2">
+                                                <UserFormDialog
+                                                    userToEdit={user}
+                                                    triggerArg={
+                                                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                                                            <MoreHorizontal className="h-4 w-4" />
+                                                            <span className="sr-only">Menu</span>
+                                                        </Button>
+                                                    }
+                                                />
+
+                                                <DropdownMenu>
+                                                    <DropdownMenuTrigger asChild>
+                                                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                                                            <KeyRound className="h-4 w-4" />
+                                                        </Button>
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent align="end">
+                                                        <DropdownMenuLabel>Segurança</DropdownMenuLabel>
+                                                        <DropdownMenuItem
+                                                            className="text-destructive cursor-pointer"
+                                                        // Ideally create a specific dialog for reset password. 
+                                                        // For now, I'll allow deleting via this menu or a separate Delete Dialog.
+                                                        // Let's implement real Delete here.
+                                                        >
+                                                            <form action={deleteUserAction} className="w-full">
+                                                                <input type="hidden" name="id" value={user.id} />
+                                                                <button type="submit" className="flex items-center w-full">
+                                                                    <Trash2 className="mr-2 h-4 w-4" />
+                                                                    Excluir Usuário
+                                                                </button>
+                                                            </form>
+                                                        </DropdownMenuItem>
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+                                ))
                         ) : (
                             <TableRow>
                                 <TableCell colSpan={5} className="h-24 text-center">

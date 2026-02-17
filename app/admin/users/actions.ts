@@ -42,6 +42,30 @@ export async function getUsers(page = 1, limit = 10, search = '', roleFilter = '
         return { users: [], count: 0, error: 'Erro ao buscar usuários.' }
     }
 
+    // Fetch related data for profile completion calculation (for all users in this page)
+    const userIds = users.map((u: any) => u.id)
+
+    if (userIds.length > 0) {
+        const { data: academic } = await supabase
+            .from('academic_records')
+            .select('*')
+            .in('profile_id', userIds)
+
+        const { data: professional } = await supabase
+            .from('professional_history')
+            .select('*')
+            .in('profile_id', userIds)
+
+        // Attach to users
+        const usersWithData = users.map((u: any) => ({
+            ...u,
+            academic_records: academic?.filter(a => a.profile_id === u.id) || [],
+            professional_history: professional?.filter(p => p.profile_id === u.id) || []
+        }))
+
+        return { users: usersWithData, count }
+    }
+
     return { users, count }
 }
 
