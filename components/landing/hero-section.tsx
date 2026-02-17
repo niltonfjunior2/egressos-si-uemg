@@ -47,7 +47,7 @@ export function HeroSection() {
                             </Button>
                         </div>
 
-                        {/* Users Stack */}
+                        {/* Users Stack Voltar com isso quando tiver mais cadastros
                         <div className="flex items-center justify-center lg:justify-start gap-4 pt-4">
                             <div className="flex -space-x-3">
                                 {[1, 2, 3].map((i) => (
@@ -61,7 +61,7 @@ export function HeroSection() {
                                 ))}
                             </div>
                             <p className="text-sm text-slate-500 font-medium">Junte-se a +500 egressos já conectados</p>
-                        </div>
+                        </div>*/}
                     </div>
 
                     {/* Visual Content */}

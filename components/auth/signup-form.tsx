@@ -17,6 +17,13 @@ import { signup } from "@/app/auth/actions"
 import { useTransition } from "react"
 import { toast } from "sonner"
 import { Loader2 } from "lucide-react"
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
 
 export function SignupForm() {
     const [isPending, startTransition] = useTransition()
@@ -28,6 +35,7 @@ export function SignupForm() {
             email: "",
             password: "",
             confirmPassword: "",
+            role: undefined,
         },
     })
 
@@ -55,6 +63,27 @@ export function SignupForm() {
                             <FormControl>
                                 <Input placeholder="Seu nome" {...field} />
                             </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                <FormField
+                    control={form.control}
+                    name="role"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Situação</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Selecione sua situação atual" />
+                                    </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                    <SelectItem value="aluno">Cursando</SelectItem>
+                                    <SelectItem value="egresso">Egresso (Formado)</SelectItem>
+                                </SelectContent>
+                            </Select>
                             <FormMessage />
                         </FormItem>
                     )}

@@ -24,7 +24,7 @@ export async function middleware(request: NextRequest) {
     const isSignedOut = request.nextUrl.searchParams.get('signedout') === 'true'
     if (user && path === '/login' && !isSignedOut) {
         // Redirect to dashboard/feed
-        return NextResponse.redirect(new URL('/profile', request.url))
+        return NextResponse.redirect(new URL('/', request.url))
     }
 
     return response

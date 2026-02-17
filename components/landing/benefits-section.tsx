@@ -1,4 +1,4 @@
-import { Users, Briefcase, CalendarCheck } from "lucide-react"
+import { Users, Briefcase, Star } from "lucide-react"
 
 export function BenefitsSection() {
     return (
@@ -23,8 +23,8 @@ export function BenefitsSection() {
                     </div>
 
                     {/* Card 2 */}
-                    <div className="group p-8 bg-white dark:bg-slate-800/50 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-xl hover:shadow-landing-secondary/10 transition-all duration-300 hover:-translate-y-2">
-                        <div className="w-14 h-14 bg-landing-secondary/10 text-landing-secondary rounded-xl flex items-center justify-center mb-6 group-hover:bg-landing-secondary group-hover:text-white transition-colors duration-300">
+                    <div className="group p-8 bg-white dark:bg-slate-800/50 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-xl hover:shadow-primary/10 transition-all duration-300 hover:-translate-y-2">
+                        <div className="w-14 h-14 bg-primary/10 text-primary rounded-xl flex items-center justify-center mb-6 group-hover:bg-primary group-hover:text-white transition-colors duration-300">
                             <Briefcase size={32} />
                         </div>
                         <h4 className="text-xl font-bold mb-4 text-slate-900 dark:text-white">Vagas Exclusivas</h4>
@@ -36,11 +36,11 @@ export function BenefitsSection() {
                     {/* Card 3 */}
                     <div className="group p-8 bg-white dark:bg-slate-800/50 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-xl hover:shadow-primary/10 transition-all duration-300 hover:-translate-y-2">
                         <div className="w-14 h-14 bg-primary/10 text-primary rounded-xl flex items-center justify-center mb-6 group-hover:bg-primary group-hover:text-white transition-colors duration-300">
-                            <CalendarCheck size={32} />
+                            <Star size={32} />
                         </div>
-                        <h4 className="text-xl font-bold mb-4 text-slate-900 dark:text-white">Eventos e Cursos</h4>
+                        <h4 className="text-xl font-bold mb-4 text-slate-900 dark:text-white">Vitrine de Talentos</h4>
                         <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
-                            Fique por dentro de workshops, palestras e programas de extensão focados na atualização profissional de nossos egressos.
+                            Mantenha seu perfil em destaque para empresas parceiras e recrutadores que buscam a excelência da formação UEMG. Seja encontrado pelo mercado.
                         </p>
                     </div>
                 </div>

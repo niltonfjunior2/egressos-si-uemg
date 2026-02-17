@@ -25,7 +25,7 @@ export default async function AdminLayout({
     // RBAC: Verify if user has access to admin panel
     const { data: profile } = await supabase
         .from('profiles')
-        .select('role, full_name, avatar_url')
+        .select('role, full_name') // Removed avatar_url as it doesn't exist in schema
         .eq('id', user.id)
         .single()
 
@@ -61,13 +61,9 @@ export default async function AdminLayout({
                             </div>
                             {/* Avatar Fallback */}
                             <div className="h-10 w-10 rounded-full border-2 border-primary shadow-sm bg-gray-200 overflow-hidden">
-                                {profile.avatar_url ? (
-                                    <img src={profile.avatar_url} alt="Avatar" className="h-full w-full object-cover" />
-                                ) : (
-                                    <div className="h-full w-full flex items-center justify-center text-gray-500 font-bold">
-                                        {profile.full_name.charAt(0)}
-                                    </div>
-                                )}
+                                <div className="h-full w-full flex items-center justify-center text-gray-500 font-bold">
+                                    {profile.full_name.charAt(0)}
+                                </div>
                             </div>
                         </div>
                     </div>

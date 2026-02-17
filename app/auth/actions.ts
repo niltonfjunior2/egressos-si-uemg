@@ -29,6 +29,8 @@ export async function login(formData: LoginFormData) {
     if (profile && ['administrador', 'coordenador', 'professor'].includes(profile.role)) {
         revalidatePath('/', 'layout')
         redirect('/admin')
+    } else {
+        console.log('Login redirect: role didnt match or profile null', profile)
     }
 
     revalidatePath('/', 'layout')
@@ -50,6 +52,7 @@ export async function signup(formData: SignupFormData) {
         options: {
             data: {
                 full_name: formData.fullName,
+                role: formData.role,
             },
         },
     })
@@ -69,7 +72,7 @@ export async function signup(formData: SignupFormData) {
             id: data.user.id,
             full_name: formData.fullName,
             email: formData.email,
-            role: 'aluno', // Default role
+            role: formData.role, // User selected role
         })
 
         if (profileError) {
@@ -91,7 +94,7 @@ export async function signout() {
     const supabase = await createClient()
     await supabase.auth.signOut()
     revalidatePath('/', 'layout')
-    redirect('/login?signedout=true')
+    redirect('/')
 }
 
 // Imports for recovery
