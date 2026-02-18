@@ -47,11 +47,11 @@ Este documento guia o desenvolvimento incremental do sistema, unindo os requisit
 - [x] **Gerenciamento de Vagas**
   - [x] CRUD completo com RBAC (Admin/Coord vs Auth)
   - [x] Campos Extras (Contato, PJ)
-- [ ] **Moderação**
-  - [ ] Admin pode apagar posts ou vagas impróprias.
+- [x] **Moderação**
+  - [x] Admin pode apagar posts ou vagas impróprias.
 
-- [ ] **Relatórios CEE/MG**
-  - [ ] Exportação de dados para conformidade com a Resolução 502/2025.
+- [x] **Relatórios CEE/MG**
+  - [x] Exportação de dados para conformidade com a Resolução 502/2025.
 
 ---
 

@@ -211,4 +211,21 @@ if (error?.code === '23505') {
 
 **Contexto:** O `profiles` evoluiu ao longo de várias sessões com adição de novos campos (`mobile_phone`, `social_media_url`, `lattes_url`) e remoção de outros (`avatar_url`). Cada alteração exigiu atualização sincronizada em: 1) SQL migration, 2) Zod schema, 3) Server Action, 4) UI (Wizard + View).
 **Solução:** Seguir sempre o fluxo: `SQL → Schema/Types → Action → UI`. Manter `sql/schema.sql` como fonte de verdade e atualizá-lo a cada mudança.
-**Prevenção:** Ao adicionar um campo ao perfil, criar checklist mental: coluna no banco → validação Zod → action de save → input no wizard → exibição na view. Pular qualquer etapa resulta em dados que não persistem ou não aparecem.
+
+### [2026-02-18] - [AUTH/MIDDLEWARE] Loop de Login com Sessão Morta (Stale Session)
+
+**Contexto:** Após resetar o banco de dados, o cookie de sessão do navegador permanece válido (JWT), mas o usuário não existe mais na tabela `profiles`. O middleware detectava o usuário logado e redirecionava para `/`, mas a página `/` falhava ou o layout redirecionava de volta para login, criando um loop.
+**Solução:** No middleware, além de checar `user`, verificar se o perfil existe no banco. Se não existir (mesmo com token válido), forçar logout ou permitir acesso à rota de login.
+**Prevenção:** Middleware de autenticação deve ser resiliente a inconsistências entre Auth (JWT) e Dados (Banco).
+
+### [2026-02-18] - [NEXTJS] Parâmetros Assíncronos em Next.js 15+
+
+**Contexto:** Erro ao acessar `params.id` diretamente em Page Components (`app/admin/users/[id]/page.tsx`). No Next.js 15/16, `params` e `searchParams` tornaram-se Promises.
+**Solução:** Aguardar a resolução dos parâmetros: `const { id } = await params`.
+**Prevenção:** Em rotas dinâmicas recentes do Next.js, sempre tratar `params` como assíncrono.
+
+### [2026-02-18] - [SEC/RLS] Bypass de RLS para Admin
+
+**Contexto:** O painel administrativo precisa listar dados de todos os usuários, mas as políticas RLS (`current_user`) impedem isso por padrão.
+**Solução:** Utilizar um cliente Supabase específico com `service_role` key (`createAdminClient`) apenas em rotas administrativas protegidas, explicitamente ignorando o RLS.
+**Prevenção:** Segregar claramente clientes "Pessoais" (cookies, RLS ativo) de clientes "Admin" (service key, RLS bypass) para evitar vazamento acidental de dados.

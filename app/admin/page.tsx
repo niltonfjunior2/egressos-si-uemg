@@ -9,19 +9,71 @@ export default async function AdminDashboard() {
     const userName = user?.user_metadata?.full_name || "Administrador"
     const firstName = userName.split(" ")[0]
 
-    // Fetch stats
-    const { count: totalGraduates } = await supabase
-        .from('profiles')
-        .select('*', { count: 'exact', head: true })
-        .eq('role', 'egresso') // Or 'aluno' if no egressos yet
+    // 1. Total Egressos (Formados)
+    const { count: totalGraduates, data: graduatesData } = await supabase
+        .from('academic_records')
+        .select('profile_id, graduation_year')
+        .eq('status', 'formado')
 
+    // 2. Egressos em Educação Continuada
+    const { count: continuingEducation } = await supabase
+        .from('education_history')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'em_andamento')
+
+    // 3. Empregabilidade (Egressos formados com emprego atual)
+    // Fetch unique profile_ids from professional_history with is_current=true
+    const { data: employedProfiles } = await supabase
+        .from('professional_history')
+        .select('profile_id, salary_range')
+        .eq('is_current', true)
+
+    // Calculate Intersection: Graduates who are Employed
+    // Set of graduate IDs
+    const graduateIds = new Set(graduatesData?.map(r => r.profile_id))
+
+    // Filter employed profiles that are in the graduate set
+    const employedGraduates = employedProfiles?.filter(p => graduateIds.has(p.profile_id)) || []
+
+    // Count unique employed graduates
+    const uniqueEmployedGraduates = new Set(employedGraduates.map(p => p.profile_id)).size
+
+    const employmentRate = totalGraduates ? Math.round((uniqueEmployedGraduates / totalGraduates) * 100) : 0
+
+    // 4. Salary Distribution (from Employed Graduates)
+    const salaryDistribution: Record<string, number> = {}
+    employedGraduates.forEach(p => {
+        if (p.salary_range) {
+            salaryDistribution[p.salary_range] = (salaryDistribution[p.salary_range] || 0) + 1
+        }
+    })
+
+    // 5. Graduation Evolution (Graph)
+    const graduationEvolution: Record<string, number> = {}
+    graduatesData?.forEach(r => {
+        if (r.graduation_year) {
+            graduationEvolution[r.graduation_year] = (graduationEvolution[r.graduation_year] || 0) + 1
+        }
+    })
+
+    // Sort years and prepare for graph
+    const years = Object.keys(graduationEvolution).sort()
+    // Take last 5 years or all if less
+    const recentYears = years.slice(-5)
+    const graphData = recentYears.map(year => ({
+        year,
+        count: graduationEvolution[year],
+        // Mocking a target or previous year comparison since we don't have historical snapshots easily
+        // Let's just show the raw count for now
+        height: Math.min(100, (graduationEvolution[year] / (Math.max(...Object.values(graduationEvolution)) || 1)) * 100)
+    }))
+
+
+    // Fetch Open Jobs Count
     const { count: openJobs } = await supabase
         .from('opportunities')
         .select('*', { count: 'exact', head: true })
         .eq('status', 'aberta')
-
-    // Mock data for events/system status as they might not have tables yet
-    const verifiedUsersPercent = 85
 
     return (
         <div className="space-y-8">
@@ -34,154 +86,121 @@ export default async function AdminDashboard() {
                 {/* System Overview Card */}
                 <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-800 flex flex-col justify-between">
                     <div className="flex justify-between items-start mb-4">
-                        <h3 className="font-bold text-gray-700 dark:text-gray-200">Visão Geral do Sistema</h3>
+                        <h3 className="font-bold text-gray-700 dark:text-gray-200">Visão Geral do Curso</h3>
                         <Users className="text-admin-primary h-6 w-6" />
                     </div>
                     <div className="relative pt-1">
                         <div className="flex mb-2 items-center justify-between">
                             <div>
                                 <span className="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full text-admin-primary bg-admin-primary/10">
-                                    Usuários Verificados
+                                    Taxa de Empregabilidade
                                 </span>
                             </div>
                             <div className="text-right">
                                 <span className="text-xs font-semibold inline-block text-admin-primary">
-                                    {verifiedUsersPercent}%
+                                    {employmentRate}%
                                 </span>
                             </div>
                         </div>
                         <div className="overflow-hidden h-2 mb-4 text-xs flex rounded bg-gray-200 dark:bg-slate-700">
                             <div
                                 className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-admin-primary transition-all duration-500"
-                                style={{ width: `${verifiedUsersPercent}%` }}
+                                style={{ width: `${employmentRate}%` }}
                             ></div>
                         </div>
                     </div>
-                    <p className="text-sm text-gray-500 mb-4">Total de {totalGraduates || 0} egressos registrados na plataforma.</p>
-                    <Link href="/admin/users" className="w-full py-2.5 bg-admin-primary text-white font-semibold rounded-lg hover:bg-opacity-90 transition-all text-center text-sm">
-                        Gerenciar Usuários
+                    <div className="grid grid-cols-2 gap-4 mt-2">
+                        <div>
+                            <p className="text-2xl font-bold text-slate-800 dark:text-white">{totalGraduates || 0}</p>
+                            <p className="text-xs text-gray-500">Total de Formados</p>
+                        </div>
+                        <div>
+                            <p className="text-2xl font-bold text-slate-800 dark:text-white">{continuingEducation || 0}</p>
+                            <p className="text-xs text-gray-500">Educação Continuada</p>
+                        </div>
+                    </div>
+
+                    <Link href="/admin/users?status=formado" className="w-full mt-6 py-2.5 bg-admin-primary text-white font-semibold rounded-lg hover:bg-opacity-90 transition-all text-center text-sm">
+                        Ver Egressos
                     </Link>
                 </div>
 
-                {/* Pending Jobs Card */}
+                {/* Pendências / Jobs Card */}
                 <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-800 flex flex-col">
                     <div className="flex justify-between items-start mb-4">
-                        <h3 className="font-bold text-gray-700 dark:text-gray-200">Vagas Pendentes</h3>
+                        <h3 className="font-bold text-gray-700 dark:text-gray-200">Vagas e Oportunidades</h3>
                         <Briefcase className="text-admin-accent h-6 w-6" />
                     </div>
-                    <div className="space-y-4 flex-1">
-                        {/* Mock pending items */}
-                        <div className="flex items-center p-3 rounded-xl bg-gray-50 dark:bg-slate-800 border border-gray-100 dark:border-slate-700">
-                            <div className="h-10 w-10 bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center rounded-lg text-blue-600 mr-3">
-                                <Clock className="h-5 w-5" />
-                            </div>
-                            <div className="flex-1">
-                                <h4 className="text-sm font-bold">Estágio em Dev</h4>
-                                <p className="text-xs text-gray-500">SoftHouse • 2 dias atrás</p>
-                            </div>
-                            <button className="text-xs font-medium text-admin-primary hover:underline">Revisar</button>
+                    <div className="flex-1 flex flex-col items-center justify-center text-center space-y-2">
+                        <div className="bg-admin-accent/10 p-4 rounded-full mb-2">
+                            <Briefcase className="h-8 w-8 text-admin-accent" />
                         </div>
-                        <div className="flex items-center p-3 rounded-xl bg-gray-50 dark:bg-slate-800 border border-gray-100 dark:border-slate-700">
-                            <div className="h-10 w-10 bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center rounded-lg text-purple-600 mr-3">
-                                <AlertTriangle className="h-5 w-5" />
-                            </div>
-                            <div className="flex-1">
-                                <h4 className="text-sm font-bold">Analista Jr</h4>
-                                <p className="text-xs text-gray-500">Banco XPTO • 5 dias atrás</p>
-                            </div>
-                            <button className="text-xs font-medium text-admin-primary hover:underline">Revisar</button>
-                        </div>
+                        <h4 className="text-3xl font-bold text-slate-800 dark:text-white">{openJobs || 0}</h4>
+                        <p className="text-sm text-gray-500">Vagas Abertas no momento</p>
                     </div>
                     <Link href="/admin/jobs" className="w-full mt-4 text-admin-primary font-semibold text-sm hover:underline text-center">
-                        Ver todas as {openJobs || 0} vagas abertas
+                        Gerenciar Vagas
                     </Link>
                 </div>
 
-                {/* Upcoming Events Card */}
+                {/* Salary Estimates Card */}
                 <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-800 flex flex-col">
                     <div className="flex justify-between items-start mb-4">
-                        <h3 className="font-bold text-gray-700 dark:text-gray-200">Próximos Eventos</h3>
-                        <Calendar className="text-orange-500 h-6 w-6" />
+                        <h3 className="font-bold text-gray-700 dark:text-gray-200">Salários Estimados</h3>
+                        <div className="text-green-500">
+                            <span className="text-xs font-bold bg-green-100 dark:bg-green-900/30 px-2 py-1 rounded">Média</span>
+                        </div>
                     </div>
                     <div className="space-y-4 flex-1">
-                        <div className="flex items-start space-x-3">
-                            <div className="bg-admin-primary/10 text-admin-primary p-2 rounded-lg flex flex-col items-center justify-center min-w-[50px]">
-                                <span className="text-xs font-bold uppercase leading-none">Abr</span>
-                                <span className="text-lg font-bold">15</span>
-                            </div>
-                            <div>
-                                <h4 className="text-sm font-bold">Semana de TI 2024</h4>
-                                <p className="text-xs text-gray-500">Campus UEMG Carangola</p>
-                            </div>
-                        </div>
-                        <div className="flex items-start space-x-3">
-                            <div className="bg-admin-accent/10 text-admin-accent p-2 rounded-lg flex flex-col items-center justify-center min-w-[50px]">
-                                <span className="text-xs font-bold uppercase leading-none">Mai</span>
-                                <span className="text-lg font-bold">02</span>
-                            </div>
-                            <div>
-                                <h4 className="text-sm font-bold">Hackathon Regional</h4>
-                                <p className="text-xs text-gray-500">Auditório Principal</p>
-                            </div>
-                        </div>
+                        {/* Render simple bars for top 3 ranges */}
+                        {Object.entries(salaryDistribution)
+                            .sort(([, a], [, b]) => b - a)
+                            .slice(0, 3)
+                            .map(([range, count]) => {
+                                const percentage = Math.round((count / (uniqueEmployedGraduates || 1)) * 100)
+                                return (
+                                    <div key={range}>
+                                        <div className="flex justify-between text-xs mb-1">
+                                            <span className="font-semibold">{range}</span>
+                                            <span className="text-gray-500">{count} egressos ({percentage}%)</span>
+                                        </div>
+                                        <div className="w-full bg-gray-100 dark:bg-slate-800 rounded-full h-2">
+                                            <div className="bg-green-500 h-2 rounded-full" style={{ width: `${percentage}%` }}></div>
+                                        </div>
+                                    </div>
+                                )
+                            })}
+                        {Object.keys(salaryDistribution).length === 0 && (
+                            <p className="text-sm text-gray-500 text-center py-4">Sem dados salariais suficientes.</p>
+                        )}
                     </div>
-                    <button className="w-full mt-4 bg-gray-100 dark:bg-slate-800 py-2 rounded-lg text-gray-700 dark:text-gray-300 font-semibold text-sm hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors">
-                        Gerenciar Eventos
-                    </button>
                 </div>
 
-                {/* CSS Bar Chart Section */}
+                {/* Evolution Chart Section */}
                 <div className="lg:col-span-3 bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-800">
                     <div className="flex flex-col md:flex-row md:items-center justify-between mb-8">
                         <div>
-                            <h3 className="font-bold text-xl text-gray-800 dark:text-gray-100">Egressos no Mercado</h3>
-                            <p className="text-sm text-gray-500">Distribuição profissional dos graduados em SI - UEMG</p>
-                        </div>
-                        <div className="mt-4 md:mt-0 flex space-x-2">
-                            <div className="flex items-center">
-                                <span className="w-3 h-3 bg-admin-primary rounded-full mr-2"></span>
-                                <span className="text-xs text-gray-500">Setor Privado</span>
-                            </div>
-                            <div className="flex items-center">
-                                <span className="w-3 h-3 bg-admin-accent rounded-full mr-2"></span>
-                                <span className="text-xs text-gray-500">Empreendedorismo</span>
-                            </div>
-                            <div className="flex items-center">
-                                <span className="w-3 h-3 bg-gray-400 rounded-full mr-2"></span>
-                                <span className="text-xs text-gray-500">Acadêmico</span>
-                            </div>
+                            <h3 className="font-bold text-xl text-gray-800 dark:text-gray-100">Evolução de Formandos</h3>
+                            <p className="text-sm text-gray-500">Histórico de conclusões de curso por ano</p>
                         </div>
                     </div>
 
                     {/* The Chart */}
                     <div className="h-64 w-full flex items-end justify-around pb-4 border-b border-gray-100 dark:border-slate-800 space-x-2">
-                        {[
-                            { year: '2019', h1: 140, h2: 110 },
-                            { year: '2020', h1: 160, h2: 130 },
-                            { year: '2021', h1: 180, h2: 155 },
-                            { year: '2022', h1: 200, h2: 185 },
-                            { year: '2023', h1: '100%', h2: '92%' }
-                        ].map((item) => (
+                        {graphData.length > 0 ? graphData.map((item) => (
                             <div key={item.year} className="flex flex-col items-center w-full max-w-[60px] group">
-                                <div className="w-full bg-admin-primary/20 rounded-t-lg relative" style={{ height: typeof item.h1 === 'number' ? `${item.h1}px` : item.h1 }}>
-                                    <div
-                                        className="absolute bottom-0 w-full bg-admin-primary rounded-t-lg transition-all group-hover:scale-105"
-                                        style={{ height: typeof item.h2 === 'number' ? `${item.h2}px` : item.h2 }}
-                                    ></div>
+                                <div className="w-full bg-admin-primary/20 rounded-t-lg relative transition-all hover:bg-admin-primary/30" style={{ height: `${item.height * 2}px`, maxHeight: '200px', minHeight: '10px' }}>
+                                    <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 text-xs font-bold text-admin-primary opacity-0 group-hover:opacity-100 transition-opacity">
+                                        {item.count}
+                                    </div>
                                 </div>
                                 <span className="text-[10px] mt-2 text-gray-400 font-bold uppercase">{item.year}</span>
                             </div>
-                        ))}
-                    </div>
-
-                    <div className="mt-6 p-4 bg-admin-primary/5 rounded-xl border border-admin-primary/10 flex items-center justify-between">
-                        <div className="flex items-center">
-                            <div className="bg-admin-primary/10 p-2 rounded-full mr-3">
-                                <CheckCircle className="text-admin-primary h-5 w-5" />
+                        )) : (
+                            <div className="w-full h-full flex items-center justify-center text-gray-400">
+                                Sem dados históricos de formaturas.
                             </div>
-                            <span className="text-sm text-admin-primary font-medium">92% dos egressos de 2023 já estão atuando na área de tecnologia.</span>
-                        </div>
-                        <button className="text-xs font-bold text-admin-primary hover:underline uppercase tracking-wider">Ver Relatório Completo</button>
+                        )}
                     </div>
                 </div>
             </div>

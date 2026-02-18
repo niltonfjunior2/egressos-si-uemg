@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { updateSession } from '@/utils/supabase/middleware'
 
 export async function middleware(request: NextRequest) {
-    const { response, user } = await updateSession(request)
+    const { supabase, response, user } = await updateSession(request)
 
     const path = request.nextUrl.pathname
 
@@ -15,14 +15,24 @@ export async function middleware(request: NextRequest) {
         path.startsWith('/recover') ||
         path.startsWith('/reset')
 
-    // If user is NOT logged in and tries to access private route
-    if (!user && !isPublicRoute) {
+    // Check profile existence if user is logged in
+    let hasProfile = false
+    if (user) {
+        const { data } = await supabase.from('profiles').select('id').eq('id', user.id).single()
+        hasProfile = !!data
+    }
+
+    // If user is NOT logged in (or has no profile) and tries to access private route
+    if ((!user || !hasProfile) && !isPublicRoute) {
+        // Create a new response to redirect, but we must carry over any cookies set by updateSession?
+        // Actually, NextResponse.redirect creates a new response. Cookies might be lost if we don't handle them?
+        // But usually redirection is a new request.
         return NextResponse.redirect(new URL('/login', request.url))
     }
 
-    // If user IS logged in and tries to access login (but not after a fresh signout)
+    // If user IS logged in AND has profile and tries to access login (but not after a fresh signout)
     const isSignedOut = request.nextUrl.searchParams.get('signedout') === 'true'
-    if (user && path === '/login' && !isSignedOut) {
+    if (user && hasProfile && path === '/login' && !isSignedOut) {
         // Redirect to dashboard/feed
         return NextResponse.redirect(new URL('/', request.url))
     }

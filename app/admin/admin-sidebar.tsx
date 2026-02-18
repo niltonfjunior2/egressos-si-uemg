@@ -9,7 +9,8 @@ import {
     Briefcase,
     Calendar,
     BarChart3,
-    LogOut
+    LogOut,
+    Newspaper
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -74,6 +75,7 @@ export function AdminSidebar({ role }: { role: string }) {
                     <Briefcase className="mr-3 h-5 w-5 opacity-80 group-hover:opacity-100" />
                     <span className="font-medium">Vagas</span>
                 </Link>
+                {/*
                 <Link
                     href="/admin/events"
                     className={cn(
@@ -85,6 +87,19 @@ export function AdminSidebar({ role }: { role: string }) {
                 >
                     <Calendar className="mr-3 h-5 w-5 opacity-80 group-hover:opacity-100" />
                     <span className="font-medium">Eventos</span>
+                </Link>
+                */}
+                <Link
+                    href="/admin/feed"
+                    className={cn(
+                        "flex items-center px-4 py-3 rounded-lg transition-colors group",
+                        isActive("/admin/feed")
+                            ? "bg-white/10 border-l-4 border-white rounded-l-none"
+                            : "hover:bg-white/10"
+                    )}
+                >
+                    <Newspaper className="mr-3 h-5 w-5 opacity-80 group-hover:opacity-100" />
+                    <span className="font-medium">Feed / Notícias</span>
                 </Link>
                 <Link
                     href="/admin/reports"
@@ -115,8 +130,6 @@ export function AdminSidebar({ role }: { role: string }) {
                             alt="Avatar"
                         />
                     </div>
-                    {/* Actually, let's use a secure icon since image might not be available */}
-                    {/* Reverting to UserCog icon equivalent or similar */}
                     <span className="font-medium">Meu Perfil</span>
                 </Link>
 

@@ -29,7 +29,7 @@ export function HeroSection() {
                         </h1>
 
                         <p className="text-lg text-slate-400 max-w-xl mx-auto lg:mx-0">
-                            Mantenha o vínculo com a UEMG Carangola. Acompanhe oportunidades, compartilhe experiências e fortaleça a rede de graduados em Sistemas de Informação.
+                            Mantenha o vínculo com a UEMG Carangola. Acompanhe oportunidades, compartilhe experiências e fortaleça a rede de egressos de Sistemas de Informação.
                         </p>
 
                         <div className="flex flex-col sm:flex-row items-center gap-4 justify-center lg:justify-start">

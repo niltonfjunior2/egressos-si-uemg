@@ -1,7 +1,6 @@
 'use server'
 
-import { createClient } from '@/utils/supabase/server'
-import { createAdminClient } from '@/lib/supabase/admin'
+import { createClient, createAdminClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 
@@ -18,22 +17,60 @@ const updateUserSchema = z.object({
     role: z.enum(['aluno', 'professor', 'coordenador', 'administrador', 'egresso']),
 })
 
-export async function getUsers(page = 1, limit = 10, search = '', roleFilter = 'all') {
-    const supabase = await createClient()
+interface UserFilters {
+    search?: string
+    role?: string
+    status?: string
+    graduationYear?: string
+    mentoring?: string // 'true' | 'false'
+}
+
+export async function getUsers(page = 1, limit = 10, filters: UserFilters = {}) {
+    const supabase = createAdminClient()
+
+    // Determine if we need an inner join for filtering on academic records
+    const hasAcademicFilters = (filters.status && filters.status !== 'all') || (filters.graduationYear && filters.graduationYear !== 'all')
+
+    // Construct the select query based on whether we need to filter by relation
+    const academicJoin = hasAcademicFilters ? 'academic_records!inner' : 'academic_records'
 
     let query = supabase
         .from('profiles')
-        .select('*', { count: 'exact' })
+        .select(`
+            *,
+            ${academicJoin}(graduation_year, status),
+            professional_history(company_name, role_title, is_current)
+        `, { count: 'exact' })
         .order('created_at', { ascending: false })
-        .range((page - 1) * limit, page * limit - 1)
 
-    if (search) {
-        query = query.or(`full_name.ilike.%${search}%,email.ilike.%${search}%`)
+    // Apply Filters
+
+    // 1. Search (Name or Email)
+    if (filters.search) {
+        query = query.or(`full_name.ilike.%${filters.search}%,email.ilike.%${filters.search}%`)
     }
 
-    if (roleFilter && roleFilter !== 'all') {
-        query = query.eq('role', roleFilter)
+    // 2. Role
+    if (filters.role && filters.role !== 'all') {
+        query = query.eq('role', filters.role)
     }
+
+    // 3. Mentoring
+    if (filters.mentoring === 'true') {
+        query = query.eq('is_open_to_mentoring', true)
+    }
+
+    // 4. Academic Status
+    if (filters.status && filters.status !== 'all') {
+        query = query.eq('academic_records.status', filters.status)
+    }
+
+    if (filters.graduationYear && filters.graduationYear !== 'all') {
+        query = query.eq('academic_records.graduation_year', filters.graduationYear)
+    }
+
+    // Pagination
+    query = query.range((page - 1) * limit, page * limit - 1)
 
     const { data: users, count, error } = await query
 
@@ -42,31 +79,22 @@ export async function getUsers(page = 1, limit = 10, search = '', roleFilter = '
         return { users: [], count: 0, error: 'Erro ao buscar usuários.' }
     }
 
-    // Fetch related data for profile completion calculation (for all users in this page)
-    const userIds = users.map((u: any) => u.id)
+    // Post-process to extract current job
+    const processedUsers = users.map((u: any) => {
+        // Find current job
+        const currentJob = u.professional_history?.find((p: any) => p.is_current)
 
-    if (userIds.length > 0) {
-        const { data: academic } = await supabase
-            .from('academic_records')
-            .select('*')
-            .in('profile_id', userIds)
+        // Flatten academic_records
+        const academic = Array.isArray(u.academic_records) ? u.academic_records[0] : u.academic_records
 
-        const { data: professional } = await supabase
-            .from('professional_history')
-            .select('*')
-            .in('profile_id', userIds)
-
-        // Attach to users
-        const usersWithData = users.map((u: any) => ({
+        return {
             ...u,
-            academic_records: academic?.filter(a => a.profile_id === u.id) || [],
-            professional_history: professional?.filter(p => p.profile_id === u.id) || []
-        }))
+            academic_records: academic,
+            current_job: currentJob,
+        }
+    })
 
-        return { users: usersWithData, count }
-    }
-
-    return { users, count }
+    return { users: processedUsers, count }
 }
 
 export async function createUser(formData: FormData) {
