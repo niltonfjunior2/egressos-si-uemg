@@ -24,6 +24,7 @@ export default async function Home() {
         role
       )
     `)
+    .eq('status', 'approved')
     .order('is_pinned', { ascending: false })
     .order('created_at', { ascending: false })
     .limit(3)
@@ -40,6 +41,10 @@ export default async function Home() {
             role_title,
             company_name,
             tech_stack
+        ),
+        education_history (
+            degree_type,
+            course_name
         )
     `)
     .eq('is_open_to_mentoring', true)

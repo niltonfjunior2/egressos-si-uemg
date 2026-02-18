@@ -110,6 +110,7 @@ export function JobFormDialog({ jobToEdit, triggerArg }: { jobToEdit?: any, trig
                                     <SelectItem value="estagio">Estágio</SelectItem>
                                     <SelectItem value="emprego">Emprego</SelectItem>
                                     <SelectItem value="trainee">Trainee</SelectItem>
+                                    <SelectItem value="monitoria">Monitoria</SelectItem>
                                     <SelectItem value="freelance">Freelance</SelectItem>
                                     <SelectItem value="pj">Contratação PJ</SelectItem>
                                     <SelectItem value="projeto_pesquisa">Projeto de Pesquisa</SelectItem>
@@ -135,6 +136,15 @@ export function JobFormDialog({ jobToEdit, triggerArg }: { jobToEdit?: any, trig
                         <div className="space-y-2">
                             <Label htmlFor="location">Localização</Label>
                             <Input id="location" name="location" defaultValue={jobToEdit?.location} placeholder="Ex: Carangola, MG" />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="expires_at">Data de Expiração</Label>
+                            <Input
+                                id="expires_at"
+                                name="expires_at"
+                                type="date"
+                                defaultValue={jobToEdit?.expires_at ? new Date(jobToEdit.expires_at).toISOString().split('T')[0] : ''}
+                            />
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="link_url">Link da Vaga / Inscrição</Label>

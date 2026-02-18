@@ -21,7 +21,8 @@ export async function createJob(formData: JobFormData) {
         description: formData.description,
         link_url: formData.applicationUrl,
         type: formData.type,
-        work_mode: formData.workMode
+        work_mode: formData.workMode,
+        expires_at: formData.expiresAt || null,
     })
 
     if (error) {

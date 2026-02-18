@@ -10,10 +10,11 @@ const jobSchema = z.object({
     description: z.string().min(10, "Descrição deve ter no mínimo 10 caracteres"),
     company: z.string().min(2, "Empresa é obrigatória"),
     location: z.string().optional(),
-    type: z.enum(['estagio', 'emprego', 'trainee', 'freelance', 'projeto_pesquisa', 'pj']),
+    type: z.enum(['estagio', 'emprego', 'trainee', 'monitoria', 'freelance', 'projeto_pesquisa', 'pj']),
     work_mode: z.enum(['presencial', 'remoto', 'hibrido']),
     link_url: z.string().url("URL inválida").optional().or(z.literal('')),
     contact_info: z.string().optional().or(z.literal('')),
+    expires_at: z.string().optional().or(z.literal('')),
 })
 
 const updateJobSchema = jobSchema.extend({
@@ -71,6 +72,7 @@ export async function createJob(formData: FormData) {
         work_mode: formData.get('work_mode'),
         link_url: formData.get('link_url'),
         contact_info: formData.get('contact_info'),
+        expires_at: formData.get('expires_at'),
     }
 
     const validated = jobSchema.safeParse(rawData)
@@ -111,6 +113,7 @@ export async function updateJob(formData: FormData) {
         work_mode: formData.get('work_mode'),
         link_url: formData.get('link_url'),
         contact_info: formData.get('contact_info'),
+        expires_at: formData.get('expires_at'),
         status: formData.get('status'),
     }
 
@@ -144,6 +147,7 @@ export async function updateJob(formData: FormData) {
             work_mode: validated.data.work_mode,
             link_url: validated.data.link_url,
             contact_info: validated.data.contact_info,
+            expires_at: validated.data.expires_at || null,
             status: validated.data.status, // Allow status update
         })
         .eq('id', validated.data.id)

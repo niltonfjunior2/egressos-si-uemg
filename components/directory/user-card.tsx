@@ -67,7 +67,7 @@ export function UserCard({ profile }: UserCardProps) {
                         </Badge>
                     )}
                     {profile.is_open_to_mentoring && (
-                        <Badge variant="outline" className="text-xs border-primary text-primary">
+                        <Badge className="text-sm bg-green-600 hover:bg-green-700 text-white border-none px-3 py-1">
                             Mentor
                         </Badge>
                     )}
@@ -99,26 +99,6 @@ export function UserCard({ profile }: UserCardProps) {
                                     </div>
                                 </div>
                             )}
-
-                            {profile.mobile_phone && (
-                                <div className="flex items-center gap-3">
-                                    <div className="bg-primary/10 p-2 rounded-full">
-                                        <Phone className="h-5 w-5 text-primary" />
-                                    </div>
-                                    <div className="flex flex-col">
-                                        <span className="text-xs text-muted-foreground">Telefone / WhatsApp</span>
-                                        <a
-                                            href={`https://wa.me/55${profile.mobile_phone.replace(/\D/g, '')}`}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="text-sm font-medium hover:underline"
-                                        >
-                                            {profile.mobile_phone}
-                                        </a>
-                                    </div>
-                                </div>
-                            )}
-
                             <div className="flex flex-wrap gap-2 mt-2">
                                 {profile.linkedin_url && (
                                     <Link href={profile.linkedin_url} target="_blank" rel="noopener noreferrer">

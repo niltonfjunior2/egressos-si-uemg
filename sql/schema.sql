@@ -28,6 +28,7 @@ CREATE TABLE public.feed_posts (
   author_id uuid NOT NULL,
   content text NOT NULL,
   is_pinned boolean DEFAULT false,
+  status text DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected')),
   created_at timestamp with time zone DEFAULT now(),
   CONSTRAINT feed_posts_pkey PRIMARY KEY (id),
   CONSTRAINT feed_posts_author_id_fkey FOREIGN KEY (author_id) REFERENCES public.profiles(id)

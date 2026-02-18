@@ -1,36 +1,49 @@
-import { createClient } from "@/utils/supabase/server"
+import { createClient, createAdminClient } from "@/utils/supabase/server"
 import Link from "next/link"
 import { Users, Briefcase, Calendar, CheckCircle, Clock, AlertTriangle } from "lucide-react"
 
 export default async function AdminDashboard() {
     const supabase = await createClient()
+    const adminSupabase = createAdminClient()
 
     const { data: { user } } = await supabase.auth.getUser()
     const userName = user?.user_metadata?.full_name || "Administrador"
     const firstName = userName.split(" ")[0]
 
     // 1. Total Egressos (Formados)
-    const { count: totalGraduates, data: graduatesData } = await supabase
+    const { data: graduatesData } = await adminSupabase
         .from('academic_records')
         .select('profile_id, graduation_year')
         .eq('status', 'formado')
 
+    const totalGraduates = graduatesData?.length || 0
+
+    // Set of graduate IDs - MOVED UP for reuse
+    const graduateIds = new Set(graduatesData?.map(r => r.profile_id))
+
     // 2. Egressos em Educação Continuada
-    const { count: continuingEducation } = await supabase
+    // Fetch all education history relative to graduates
+    const { data: educationData } = await adminSupabase
         .from('education_history')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'em_andamento')
+        .select('profile_id, status, degree_type')
+
+    // Filter logic:
+    // 1. Must be a graduate (profile_id in graduateIds)
+    // 2. Has ANY record in education_history (implies continuing education)
+
+    const continuingEducationProfiles = educationData?.filter(r =>
+        graduateIds.has(r.profile_id)
+    )
+
+    // Count unique profiles
+    const continuingEducation = new Set(continuingEducationProfiles?.map(r => r.profile_id)).size
 
     // 3. Empregabilidade (Egressos formados com emprego atual)
     // Fetch unique profile_ids from professional_history with is_current=true
-    const { data: employedProfiles } = await supabase
+    const { data: employedProfiles } = await adminSupabase
         .from('professional_history')
         .select('profile_id, salary_range')
         .eq('is_current', true)
-
-    // Calculate Intersection: Graduates who are Employed
-    // Set of graduate IDs
-    const graduateIds = new Set(graduatesData?.map(r => r.profile_id))
 
     // Filter employed profiles that are in the graduate set
     const employedGraduates = employedProfiles?.filter(p => graduateIds.has(p.profile_id)) || []
@@ -70,7 +83,7 @@ export default async function AdminDashboard() {
 
 
     // Fetch Open Jobs Count
-    const { count: openJobs } = await supabase
+    const { count: openJobs } = await adminSupabase
         .from('opportunities')
         .select('*', { count: 'exact', head: true })
         .eq('status', 'aberta')

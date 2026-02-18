@@ -13,10 +13,22 @@ export async function createPost(formData: PostFormData) {
     const result = postSchema.safeParse(formData)
     if (!result.success) return { error: 'Conteúdo inválido' }
 
+    // Check user role to determine initial status
+    const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single()
+
+    const initialStatus = (profile?.role === 'administrador' || profile?.role === 'coordenador')
+        ? 'approved'
+        : 'pending'
+
     const { error } = await supabase.from('feed_posts').insert({
         author_id: user.id,
         content: formData.content,
-        is_pinned: false, // Default
+        is_pinned: false,
+        status: initialStatus,
     })
 
     if (error) {

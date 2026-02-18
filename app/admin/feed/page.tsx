@@ -1,107 +1,124 @@
-import { getPosts, togglePin, deletePost } from './actions'
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Pin, PinOff, Trash2 } from "lucide-react"
-import { redirect } from 'next/navigation'
 import { createClient } from "@/utils/supabase/server"
+import { redirect } from "next/navigation"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Check, X, Clock } from "lucide-react"
+import { approvePost, rejectPost } from "./actions"
 
-export default async function FeedPage({
-    searchParams,
-}: {
-    searchParams: { [key: string]: string | string[] | undefined }
-}) {
+export default async function AdminFeedPage() {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
 
+    const { data: { user } } = await supabase.auth.getUser()
     if (!user) redirect('/login')
 
-    // RBAC
-    const { data: profile } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', user.id)
-        .single()
+    // Fetch pending posts
+    const { data: pendingPosts, error } = await supabase
+        .from('feed_posts')
+        .select(`
+            id,
+            content,
+            status,
+            created_at,
+            author_id,
+            profiles:author_id (
+                full_name,
+                role
+            )
+        `)
+        .order('created_at', { ascending: false })
 
-    if (!profile || !['administrador', 'coordenador'].includes(profile.role)) {
-        redirect('/admin')
-    }
-
-    const page = typeof searchParams.page === 'string' ? parseInt(searchParams.page) : 1
-    const { posts, count } = await getPosts(page)
-
-    // Actions
-    async function togglePinAction(formData: FormData) {
-        'use server'
-        const id = formData.get('id') as string
-        const status = formData.get('status') === 'true'
-        await togglePin(id, status)
-    }
-
-    async function deletePostAction(formData: FormData) {
-        'use server'
-        const id = formData.get('id') as string
-        await deletePost(id)
+    if (error) {
+        console.error('Error fetching pending posts:', error)
     }
 
     return (
-        <div className="space-y-8">
+        <div className="space-y-6">
             <div>
-                <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Gerenciamento do Feed</h2>
-                <p className="text-gray-600 dark:text-gray-400 mt-1">
-                    Modere postagens e destaque notícias importantes.
-                </p>
+                <h2 className="text-3xl font-bold tracking-tight">Moderação de Feed</h2>
+                <p className="text-muted-foreground">Aprove ou rejeite publicações da comunidade.</p>
             </div>
 
-            <div className="grid gap-4">
-                {posts && posts.length > 0 ? (
-                    posts.map((post: any) => (
-                        <div key={post.id} className={`bg-white dark:bg-slate-900 p-4 rounded-lg border ${post.is_pinned ? 'border-admin-primary/50 shadow-md' : 'border-gray-200 dark:border-slate-800 shadow-sm'} flex flex-col md:flex-row gap-4 items-start md:items-center`}>
-                            <div className="flex-1 space-y-2">
-                                <div className="flex items-center gap-2">
-                                    <Badge variant={post.is_pinned ? "default" : "secondary"} className={post.is_pinned ? "bg-admin-primary" : ""}>
-                                        {post.is_pinned ? <><Pin className="w-3 h-3 mr-1" /> Fixado</> : "Normal"}
-                                    </Badge>
-                                    <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                                        {post.profiles?.full_name}
-                                    </span>
-                                    <span className="text-xs text-gray-400">
-                                        {new Date(post.created_at).toLocaleString()}
-                                    </span>
-                                </div>
-                                <p className="text-gray-800 dark:text-gray-200 text-sm">
-                                    {post.content}
-                                </p>
-                            </div>
+            <Card>
+                <CardHeader>
+                    <CardTitle>Todas as Publicações</CardTitle>
+                    <CardDescription>
+                        Visualizando {pendingPosts?.length || 0} publicações.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <div className="space-y-4">
+                        {pendingPosts && pendingPosts.length > 0 ? (
+                            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                                {pendingPosts.map((post: any) => (
+                                    <div key={post.id} className="border rounded-lg p-4 space-y-3 bg-white dark:bg-slate-900 shadow-sm flex flex-col h-full">
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-2">
+                                                <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center text-primary text-xs font-bold">
+                                                    {post.profiles?.full_name?.charAt(0)}
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm font-semibold leading-none">{post.profiles?.full_name}</p>
+                                                    <p className="text-xs text-muted-foreground capitalize">{post.profiles?.role}</p>
+                                                </div>
+                                            </div>
+                                            {post.status === 'approved' && (
+                                                <Badge variant="outline" className="text-green-600 border-green-600 bg-green-50">
+                                                    <Check size={12} className="mr-1" /> Aprovado
+                                                </Badge>
+                                            )}
+                                            {post.status === 'pending' && (
+                                                <Badge variant="outline" className="text-amber-500 border-amber-500 bg-amber-50">
+                                                    <Clock size={12} className="mr-1" /> Pendente
+                                                </Badge>
+                                            )}
+                                            {post.status === 'rejected' && (
+                                                <Badge variant="outline" className="text-red-500 border-red-500 bg-red-50">
+                                                    <X size={12} className="mr-1" /> Rejeitado
+                                                </Badge>
+                                            )}
+                                        </div>
 
-                            <div className="flex gap-2">
-                                <form action={togglePinAction}>
-                                    <input type="hidden" name="id" value={post.id} />
-                                    <input type="hidden" name="status" value={String(post.is_pinned)} />
-                                    <Button
-                                        size="sm"
-                                        variant="outline"
-                                        title={post.is_pinned ? "Desafixar" : "Fixar no topo"}
-                                        className={post.is_pinned ? "border-admin-primary text-admin-primary hover:bg-admin-primary/10" : ""}
-                                    >
-                                        {post.is_pinned ? <PinOff className="w-4 h-4" /> : <Pin className="w-4 h-4" />}
-                                    </Button>
-                                </form>
+                                        <div className="text-sm text-slate-700 dark:text-slate-300 flex-grow min-h-[80px]">
+                                            {post.content}
+                                        </div>
 
-                                <form action={deletePostAction}>
-                                    <input type="hidden" name="id" value={post.id} />
-                                    <Button size="sm" variant="ghost" className="text-destructive hover:bg-destructive/10" title="Excluir">
-                                        <Trash2 className="w-4 h-4" />
-                                    </Button>
-                                </form>
+                                        <div className="text-xs text-muted-foreground border-t pt-2">
+                                            {new Date(post.created_at).toLocaleString('pt-BR')}
+                                        </div>
+
+                                        <div className="flex gap-2 pt-2 mt-auto">
+                                            <form action={async () => {
+                                                'use server'
+                                                await approvePost(post.id)
+                                            }} className="w-full">
+                                                <Button size="sm" className="w-full bg-green-600 hover:bg-green-700 text-white" type="submit">
+                                                    <Check size={16} className="mr-1" /> Aprovar
+                                                </Button>
+                                            </form>
+                                            <form action={async () => {
+                                                'use server'
+                                                await rejectPost(post.id)
+                                            }} className="w-full">
+                                                <Button size="sm" variant="destructive" className="w-full" type="submit">
+                                                    <X size={16} className="mr-1" /> Rejeitar
+                                                </Button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
-                        </div>
-                    ))
-                ) : (
-                    <div className="text-center py-10 text-gray-500 bg-white dark:bg-slate-900 rounded-lg border border-dashed">
-                        Nenhuma postagem encontrada.
+                        ) : (
+                            <div className="text-center py-12 text-muted-foreground">
+                                <Check className="mx-auto h-12 w-12 text-green-500 mb-4 opacity-50" />
+                                <h3 className="text-lg font-medium text-slate-900 dark:text-slate-100">Tudo limpo!</h3>
+                                <p>Não há publicações pendentes de aprovação no momento.</p>
+                            </div>
+                        )}
                     </div>
-                )}
-            </div>
+                </CardContent>
+            </Card>
         </div>
     )
 }

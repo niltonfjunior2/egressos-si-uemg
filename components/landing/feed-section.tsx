@@ -2,12 +2,13 @@
 
 import { FeedList } from "@/components/feed/feed-list"
 import { Post } from "@/components/feed/types"
+import { Job } from "@/components/jobs/types"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { MentorCard } from "./mentor-card"
 import { JobCard } from "./job-card"
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
-import { ArrowRight } from "lucide-react"
+import { ArrowRight, MapPin, Building2, Briefcase, Globe } from "lucide-react"
 import { useState } from "react"
 import {
     Dialog,
@@ -15,16 +16,20 @@ import {
     DialogHeader,
     DialogTitle,
     DialogDescription,
+    DialogFooter,
 } from "@/components/ui/dialog"
+import { Badge } from "@/components/ui/badge"
 
 interface FeedSectionProps {
     posts: Post[]
     mentors: any[]
-    jobs: any[]
+    jobs: Job[]
 }
 
 export function FeedSection({ posts, mentors, jobs }: FeedSectionProps) {
     const [selectedPost, setSelectedPost] = useState<Post | null>(null)
+    const [selectedJob, setSelectedJob] = useState<Job | null>(null)
+    const [selectedMentor, setSelectedMentor] = useState<any | null>(null)
 
     return (
         <section className="py-24 bg-white dark:bg-slate-900/50" id="comunidade">
@@ -57,6 +62,7 @@ export function FeedSection({ posts, mentors, jobs }: FeedSectionProps) {
                                         role_title={mentor.professional_history?.[0]?.role_title}
                                         company_name={mentor.professional_history?.[0]?.company_name}
                                         tech_stack={mentor.professional_history?.[0]?.tech_stack}
+                                        onClick={() => setSelectedMentor(mentor)}
                                     />
                                 ))}
                             </div>
@@ -86,6 +92,8 @@ export function FeedSection({ posts, mentors, jobs }: FeedSectionProps) {
                                         type={job.type}
                                         location={job.location}
                                         work_mode={job.work_mode}
+                                        expires_at={job.expires_at}
+                                        onClick={() => setSelectedJob(job)}
                                     />
                                 ))}
                             </div>
@@ -136,6 +144,7 @@ export function FeedSection({ posts, mentors, jobs }: FeedSectionProps) {
                 </div>
             </div>
 
+            {/* Post Dialog */}
             <Dialog open={!!selectedPost} onOpenChange={(open) => !open && setSelectedPost(null)}>
                 <DialogContent className="sm:max-w-2xl">
                     <DialogHeader>
@@ -150,6 +159,118 @@ export function FeedSection({ posts, mentors, jobs }: FeedSectionProps) {
                         <div className="text-slate-700 dark:text-slate-300 whitespace-pre-wrap leading-relaxed">
                             {selectedPost?.content}
                         </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+            {/* Job Dialog */}
+            <Dialog open={!!selectedJob} onOpenChange={(open) => !open && setSelectedJob(null)}>
+                <DialogContent className="sm:max-w-2xl">
+                    <DialogHeader>
+                        <DialogTitle className="text-xl font-bold">{selectedJob?.title}</DialogTitle>
+                        <DialogDescription className="flex items-center gap-2">
+                            <Building2 className="h-4 w-4" /> {selectedJob?.company}
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="flex flex-wrap gap-2 my-2">
+                        {selectedJob && (
+                            <>
+                                <Badge variant="secondary">{selectedJob.type.replace('_', ' ')}</Badge>
+                                <Badge variant="outline">{selectedJob.work_mode.toUpperCase()}</Badge>
+                                {selectedJob.location && (
+                                    <Badge variant="outline" className="flex items-center gap-1">
+                                        <MapPin className="h-3 w-3" /> {selectedJob.location}
+                                    </Badge>
+                                )}
+                            </>
+                        )}
+                    </div>
+
+                    <div className="mt-4 max-h-[60vh] overflow-y-auto">
+                        <h4 className="font-semibold mb-2">Descrição da Vaga</h4>
+                        <div className="text-slate-700 dark:text-slate-300 whitespace-pre-wrap leading-relaxed text-sm">
+                            {selectedJob?.description}
+                        </div>
+                    </div>
+
+                    <DialogFooter className="mt-6 flex sm:justify-between items-center gap-4">
+                        <div className="text-xs text-slate-500">
+                            Publicado em {selectedJob && new Date(selectedJob.created_at).toLocaleDateString('pt-BR')}
+                        </div>
+                        {selectedJob?.link_url && (
+                            <Link href={selectedJob.link_url} target="_blank" rel="noopener noreferrer">
+                                <Button className="w-full sm:w-auto">
+                                    <Globe className="mr-2 h-4 w-4" />
+                                    Candidatar-se
+                                </Button>
+                            </Link>
+                        )}
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Mentor Dialog */}
+            <Dialog open={!!selectedMentor} onOpenChange={(open) => !open && setSelectedMentor(null)}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-3">
+                            <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center text-primary font-bold text-xl">
+                                {selectedMentor?.full_name?.charAt(0)}
+                            </div>
+                            <div>
+                                <div className="text-xl font-bold">{selectedMentor?.full_name}</div>
+                                <div className="text-sm text-slate-500 font-normal">Egresso de Sistemas de Informação</div>
+                            </div>
+                        </DialogTitle>
+                    </DialogHeader>
+
+                    <div className="mt-4 space-y-6">
+                        {selectedMentor?.professional_history?.[0] && (
+                            <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-lg">
+                                <h4 className="font-semibold text-sm mb-2 text-primary uppercase tracking-wider">Atuação Profissional</h4>
+                                <div>
+                                    <p className="font-bold text-lg">{selectedMentor.professional_history[0].role_title}</p>
+                                    <p className="text-slate-600 dark:text-slate-300 flex items-center gap-2 mt-1">
+                                        <Building2 className="h-4 w-4" />
+                                        {selectedMentor.professional_history[0].company_name}
+                                    </p>
+                                </div>
+                            </div>
+                        )}
+
+                        {selectedMentor?.education_history?.length > 0 && (
+                            <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-lg">
+                                <h4 className="font-semibold text-sm mb-2 text-primary uppercase tracking-wider">Formação Acadêmica</h4>
+                                {selectedMentor.education_history.map((edu: any, index: number) => (
+                                    <div key={index} className={index > 0 ? "mt-3 pt-3 border-t border-slate-200 dark:border-slate-700" : ""}>
+                                        <p className="font-bold text-sm">{edu.degree_type}</p>
+                                        <p className="text-slate-600 dark:text-slate-300 text-sm">{edu.course_name}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+
+                        {selectedMentor?.professional_history?.[0]?.tech_stack?.length > 0 && (
+                            <div>
+                                <h4 className="font-semibold text-sm mb-3 text-primary uppercase tracking-wider">Stack Tecnológico</h4>
+                                <div className="flex flex-wrap gap-2">
+                                    {selectedMentor.professional_history[0].tech_stack.map((tech: string) => (
+                                        <Badge key={tech} variant="secondary" className="px-3 py-1">
+                                            {tech}
+                                        </Badge>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        <DialogFooter className="sm:justify-center pt-2">
+                            <Link href="/signup" className="w-full">
+                                <Button className="w-full" variant="default">
+                                    Conectar-se com {selectedMentor?.full_name?.split(' ')[0]}
+                                </Button>
+                            </Link>
+                        </DialogFooter>
                     </div>
                 </DialogContent>
             </Dialog>

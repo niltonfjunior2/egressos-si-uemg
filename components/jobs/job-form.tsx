@@ -122,6 +122,7 @@ export function JobForm({ onSuccess }: JobFormProps) {
                                     <SelectItem value="estagio">Estágio</SelectItem>
                                     <SelectItem value="emprego">Emprego</SelectItem>
                                     <SelectItem value="trainee">Trainee</SelectItem>
+                                    <SelectItem value="monitoria">Monitoria</SelectItem>
                                     <SelectItem value="freelance">Freelance</SelectItem>
                                     <SelectItem value="projeto_pesquisa">Projeto de Pesquisa</SelectItem>
                                 </SelectContent>
@@ -130,19 +131,34 @@ export function JobForm({ onSuccess }: JobFormProps) {
                         </FormItem>
                     )}
                 />
-                <FormField
-                    control={form.control}
-                    name="location"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Localização</FormLabel>
-                            <FormControl>
-                                <Input placeholder="Ex: Carangola, MG (ou Remoto)" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                        control={form.control}
+                        name="location"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Localização</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="Ex: Carangola, MG (ou Remoto)" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="expiresAt"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Data de Expiração (Opcional)</FormLabel>
+                                <FormControl>
+                                    <Input type="date" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </div>
                 <FormField
                     control={form.control}
                     name="applicationUrl"

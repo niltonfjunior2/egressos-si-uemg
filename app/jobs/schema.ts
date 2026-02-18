@@ -6,12 +6,13 @@ export const jobSchema = z.object({
     location: z.string().min(2, "Localização obrigatória"),
     description: z.string().min(10, "Descrição deve ter no mínimo 10 caracteres"),
     applicationUrl: z.string().url("URL inválida"),
-    type: z.enum(["estagio", "emprego", "trainee", "freelance", "projeto_pesquisa"], {
+    type: z.enum(["estagio", "emprego", "trainee", "monitoria", "freelance", "projeto_pesquisa"], {
         message: "Selecione o tipo de vaga",
     }),
     workMode: z.enum(["presencial", "remoto", "hibrido"], {
         message: "Selecione o modelo de trabalho",
     }),
+    expiresAt: z.string().optional(),
 })
 
 export type JobFormData = z.infer<typeof jobSchema>

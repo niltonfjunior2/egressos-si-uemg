@@ -59,6 +59,9 @@ export function JobCard({ job, currentUserId }: JobCardProps) {
                         <Badge variant={job.work_mode === 'remoto' ? 'default' : 'secondary'}>
                             {job.work_mode?.toUpperCase() || "PRESENCIAL"}
                         </Badge>
+                        {job.expires_at && new Date(job.expires_at) < new Date() && (
+                            <Badge variant="destructive">EXPIRADA</Badge>
+                        )}
                     </div>
                 </div>
                 {isOwner && (
