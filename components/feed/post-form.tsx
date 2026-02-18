@@ -52,7 +52,7 @@ export function PostForm() {
                                     <FormControl>
                                         <Textarea
                                             placeholder="O que você está pensando? Compartilhe com a rede..."
-                                            className="resize-none min-h-[100px]"
+                                            className="resize-y min-h-[200px]"
                                             {...field}
                                         />
                                     </FormControl>

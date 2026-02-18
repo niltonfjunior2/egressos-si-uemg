@@ -34,7 +34,7 @@ Este documento guia o desenvolvimento incremental do sistema, unindo os requisit
 
 ---
 
-## FASE 4: GESTÃO & COMPLIANCE (The Boss) [EM PROGRESSO]
+## FASE 4: GESTÃO & COMPLIANCE (The Boss) [CONCLUÍDO]
 
 **Objetivo:** Ferramentas para a Coordenação (NDE).
 
@@ -49,6 +49,7 @@ Este documento guia o desenvolvimento incremental do sistema, unindo os requisit
   - [x] Campos Extras (Contato, PJ)
 - [x] **Moderação**
   - [x] Admin pode apagar posts ou vagas impróprias.
+  - [x] Fluxo de Aprovação de Postagens (Server Actions + UI).
 
 - [x] **Relatórios CEE/MG**
   - [x] Exportação de dados para conformidade com a Resolução 502/2025.
@@ -68,8 +69,8 @@ Este documento guia o desenvolvimento incremental do sistema, unindo os requisit
 
 - [x] **Hero/Glass Styles**: Aplicado ao layout interno (`app/(portal)/layout.tsx`).
 - [x] **Correções de UI/UX**:
-  - [x] Feed: Correção de hidratação e visibilidade pública.
-  - [x] Vagas: Correção de campos (Remoto/Híbrido) e formulários.
+  - [x] Feed: Correção de hidratação, visibilidade pública e aprovação.
+  - [x] Vagas: Correção de campos, Adição de 'Monitoria' e 'Data de Expiração'.
   - [x] Diretório: Correção de busca.
 - [x] **Profile Wizard & Survey**:
   - [x] Implementação do fluxo de 6 passos (Dados → Carreira → Educação → Pesquisa → Mentoria → Finalização).

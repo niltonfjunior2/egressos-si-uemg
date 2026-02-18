@@ -28,8 +28,8 @@ CREATE TABLE public.feed_posts (
   author_id uuid NOT NULL,
   content text NOT NULL,
   is_pinned boolean DEFAULT false,
-  status text DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected')),
   created_at timestamp with time zone DEFAULT now(),
+  status text DEFAULT 'pending'::text CHECK (status = ANY (ARRAY['pending'::text, 'approved'::text, 'rejected'::text])),
   CONSTRAINT feed_posts_pkey PRIMARY KEY (id),
   CONSTRAINT feed_posts_author_id_fkey FOREIGN KEY (author_id) REFERENCES public.profiles(id)
 );
@@ -39,13 +39,14 @@ CREATE TABLE public.opportunities (
   title text NOT NULL,
   description text NOT NULL,
   link_url text,
-  type text NOT NULL CHECK (type = ANY (ARRAY['estagio'::text, 'emprego'::text, 'trainee'::text, 'freelance'::text, 'pj'::text, 'projeto_pesquisa'::text])),
+  type text NOT NULL CHECK (type = ANY (ARRAY['estagio'::text, 'emprego'::text, 'trainee'::text, 'monitoria'::text, 'freelance'::text, 'pj'::text, 'projeto_pesquisa'::text])),
   status text DEFAULT 'aberta'::text CHECK (status = ANY (ARRAY['aberta'::text, 'preenchida'::text, 'cancelada'::text])),
   created_at timestamp with time zone DEFAULT now(),
   company text,
   location text,
   work_mode text CHECK (work_mode = ANY (ARRAY['presencial'::text, 'remoto'::text, 'hibrido'::text])),
   contact_info text,
+  expires_at timestamp with time zone,
   CONSTRAINT opportunities_pkey PRIMARY KEY (id),
   CONSTRAINT opportunities_author_id_fkey FOREIGN KEY (author_id) REFERENCES public.profiles(id)
 );

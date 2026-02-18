@@ -13,17 +13,17 @@ export default async function FeedPage() {
     }
 
     // Fetch posts with author profiles
-    const { data: posts } = await supabase
+    const { data: posts, error } = await supabase
         .from('feed_posts')
         .select(`
       id,
       content,
       created_at,
+      status,
       author_id,
       profiles:author_id (
         full_name,
-        social_name,
-        avatar_url
+        social_name
       )
     `)
         .order('created_at', { ascending: false })

@@ -20,14 +20,19 @@ export async function approvePost(id: string) {
         return { error: 'Permissão negada' }
     }
 
-    const { error } = await supabase
+    const { data, error } = await supabase
         .from('feed_posts')
         .update({ status: 'approved' })
         .eq('id', id)
+        .select()
 
     if (error) {
         console.error('Error approving post:', error)
         return { error: 'Erro ao aprovar postagem' }
+    }
+
+    if (!data || data.length === 0) {
+        return { error: 'Postagem não encontrada ou permissão negada' }
     }
 
     revalidatePath('/admin/feed')
@@ -52,14 +57,19 @@ export async function rejectPost(id: string) {
         return { error: 'Permissão negada' }
     }
 
-    const { error } = await supabase
+    const { data, error } = await supabase
         .from('feed_posts')
         .update({ status: 'rejected' })
         .eq('id', id)
+        .select()
 
     if (error) {
         console.error('Error rejecting post:', error)
         return { error: 'Erro ao rejeitar postagem' }
+    }
+
+    if (!data || data.length === 0) {
+        return { error: 'Postagem não encontrada ou permissão negada' }
     }
 
     revalidatePath('/admin/feed')

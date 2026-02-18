@@ -42,10 +42,6 @@ export function PostCard({ post, currentUserId }: PostCardProps) {
     return (
         <Card className="mb-4">
             <CardHeader className="flex flex-row items-center gap-4 p-4 pb-2">
-                <Avatar>
-                    <AvatarImage src={post.profiles?.avatar_url || ""} />
-                    <AvatarFallback>{initials}</AvatarFallback>
-                </Avatar>
                 <div className="flex flex-col">
                     <span className="font-semibold text-sm">{authorName}</span>
                     <span className="text-xs text-muted-foreground" suppressHydrationWarning>

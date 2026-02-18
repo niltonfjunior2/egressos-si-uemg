@@ -229,3 +229,21 @@ if (error?.code === '23505') {
 **Contexto:** O painel administrativo precisa listar dados de todos os usuários, mas as políticas RLS (`current_user`) impedem isso por padrão.
 **Solução:** Utilizar um cliente Supabase específico com `service_role` key (`createAdminClient`) apenas em rotas administrativas protegidas, explicitamente ignorando o RLS.
 **Prevenção:** Segregar claramente clientes "Pessoais" (cookies, RLS ativo) de clientes "Admin" (service key, RLS bypass) para evitar vazamento acidental de dados.
+
+### [2026-02-18] - [SEC/RLS] Update Silencioso (Policy Missing)
+
+**Contexto:** Ao tentar atualizar o status de uma postagem, a operação `update` retornava sucesso, mas nada mudava no banco.
+**Solução:** Habilitar policies explícitas para `UPDATE` no role de Admins/Coordenadores. O padrão do RLS é "deny all" para writes.
+**Prevenção:** Sempre testar operações de escrita com usuários de diferentes roles. Verificar o atributo `count` ou `data` retornado pelo Supabase para confirmar a persistência.
+
+### [2026-02-18] - [DB/SCHEMA] Colunas Fantasmas em Queries
+
+**Contexto:** Erro 500 no Feed. O código TypeScript solicitava `avatar_url` na query, mas a coluna não existia mais no banco `profiles`.
+**Solução:** Remover a coluna da query.
+**Prevenção:** Manter interfaces TypeScript geradas automaticamente a partir do schema do banco (Introspection) ou validar queries manualmente após migrações de schema.
+
+### [2026-02-18] - [UX/FORMS] Redimensionamento de Textarea
+
+**Contexto:** Usuários reclamaram da dificuldade de escrever textos longos em inputs de altura fixa.
+**Solução:** Habilitar `resize-y` e definir `min-height` generoso.
+**Prevenção:** Em campos de texto livre (posts, descrições), nunca bloquear o redimensionamento vertical (`resize-none`) a menos que estritamente necessário pelo design.
