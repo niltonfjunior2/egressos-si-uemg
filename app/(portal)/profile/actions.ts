@@ -27,6 +27,7 @@ export async function updateProfile(formData: ProfileFormData) {
         social_media_url: formData.socialMediaUrl,
         lattes_url: formData.lattesUrl,
         is_open_to_mentoring: formData.isOpenToMentoring,
+        role: formData.role,
         updated_at: new Date().toISOString(),
     })
 

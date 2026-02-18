@@ -9,6 +9,7 @@ import {
     Briefcase,
     Search,
     LogOut,
+    MessageSquare,
 
     Settings,
     UserCog
@@ -74,6 +75,19 @@ export function PortalSidebar({ user }: { user: any }) {
                 >
                     <Briefcase className="mr-3 h-5 w-5 opacity-80 group-hover:opacity-100" />
                     <span className="font-medium">Vagas</span>
+                </Link>
+
+                <Link
+                    href="/feed"
+                    className={cn(
+                        "flex items-center px-4 py-3 rounded-lg transition-colors group",
+                        isActive("/feed")
+                            ? "bg-white/10 border-l-4 border-blue-500 rounded-l-none"
+                            : "hover:bg-white/10"
+                    )}
+                >
+                    <MessageSquare className="mr-3 h-5 w-5 opacity-80 group-hover:opacity-100" />
+                    <span className="font-medium">Comunidade</span>
                 </Link>
 
                 <Link

@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Check, X, Clock } from "lucide-react"
 import { approvePost, rejectPost } from "./actions"
+import { PostApprovalButton } from "./post-approval-button"
 
 export default async function AdminFeedPage() {
     const supabase = await createClient()
@@ -89,22 +90,12 @@ export default async function AdminFeedPage() {
                                         </div>
 
                                         <div className="flex gap-2 pt-2 mt-auto">
-                                            <form action={async () => {
-                                                'use server'
-                                                await approvePost(post.id)
-                                            }} className="w-full">
-                                                <Button size="sm" className="w-full bg-green-600 hover:bg-green-700 text-white" type="submit">
-                                                    <Check size={16} className="mr-1" /> Aprovar
-                                                </Button>
-                                            </form>
-                                            <form action={async () => {
-                                                'use server'
-                                                await rejectPost(post.id)
-                                            }} className="w-full">
-                                                <Button size="sm" variant="destructive" className="w-full" type="submit">
-                                                    <X size={16} className="mr-1" /> Rejeitar
-                                                </Button>
-                                            </form>
+                                            <div className="w-full">
+                                                <PostApprovalButton postId={post.id} action="approve" />
+                                            </div>
+                                            <div className="w-full">
+                                                <PostApprovalButton postId={post.id} action="reject" />
+                                            </div>
                                         </div>
                                     </div>
                                 ))}

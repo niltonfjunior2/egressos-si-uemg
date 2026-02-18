@@ -102,6 +102,9 @@ export function ProfileWizard({
         graduationYear: initialAcademic?.find((a: any) => a.status === 'formado')?.graduation_year?.toString() || "",
     });
 
+    // Role Change Logic
+    const [shouldChangeRole, setShouldChangeRole] = useState(false);
+
     // Step 2: Professional (Focus on ADDING current/latest role)
     const latestProfessional = initialProfessional?.find((p: any) => p.is_current) || initialProfessional?.[0];
 
@@ -216,6 +219,7 @@ export function ProfileWizard({
                     socialMediaUrl: personalData.socialMediaUrl,
                     lattesUrl: personalData.lattesUrl,
                     isOpenToMentoring: isOpenToMentoring,
+                    role: shouldChangeRole ? 'egresso' : undefined,
                 } as any);
 
                 if (profileRes.error) throw new Error(profileRes.error);
@@ -456,7 +460,6 @@ export function ProfileWizard({
                                         onChange={(e) => setPersonalData({ ...personalData, graduationYear: e.target.value })}
                                         placeholder="Ex: 2025"
                                     />
-                                    <p className="text-xs text-muted-foreground">Se ainda não se formou, deixe em branco.</p>
                                 </div>
                                 <div className="space-y-2">
                                     <Label>Celular / WhatsApp</Label>
@@ -507,6 +510,26 @@ export function ProfileWizard({
                                     />
                                 </div>
                             </div>
+
+                            {/* Role Change Option (User Request: Allow student to change to alumni if graduation year > current year) */}
+                            {initialProfile?.role === 'aluno' && personalData.graduationYear && parseInt(personalData.graduationYear) < new Date().getFullYear() && (
+                                <div className="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-lg border border-yellow-200 dark:border-yellow-900/50 flex items-start space-x-3 animate-in fade-in slide-in-from-top-2">
+                                    <Checkbox
+                                        id="role-change"
+                                        checked={shouldChangeRole}
+                                        onCheckedChange={(checked) => setShouldChangeRole(checked as boolean)}
+                                        className="mt-1 border-slate-400 dark:border-slate-500 bg-white dark:bg-slate-950"
+                                    />
+                                    <div className="space-y-1">
+                                        <Label htmlFor="role-change" className="font-semibold cursor-pointer">
+                                            Alterar perfil para Egresso
+                                        </Label>
+                                        <p className="text-sm text-muted-foreground">
+                                            Você informou um ano de conclusão anterior ao atual. Deseja atualizar seu perfil para Egresso?
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     )}
 

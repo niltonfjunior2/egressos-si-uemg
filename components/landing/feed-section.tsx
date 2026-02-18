@@ -265,7 +265,7 @@ export function FeedSection({ posts, mentors, jobs }: FeedSectionProps) {
                         )}
 
                         <DialogFooter className="sm:justify-center pt-2">
-                            <Link href="/signup" className="w-full">
+                            <Link href="/login" className="w-full">
                                 <Button className="w-full" variant="default">
                                     Conectar-se com {selectedMentor?.full_name?.split(' ')[0]}
                                 </Button>

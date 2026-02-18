@@ -9,6 +9,7 @@ export const profileSchema = z.object({
     socialMediaUrl: z.string().url("URL inválida").optional().or(z.literal("")),
     lattesUrl: z.string().url("URL inválida").optional().or(z.literal("")),
     isOpenToMentoring: z.boolean(),
+    role: z.enum(["aluno", "egresso", "professor", "coordenador", "administrador"]).optional(),
 })
 
 export type ProfileFormData = z.infer<typeof profileSchema>
