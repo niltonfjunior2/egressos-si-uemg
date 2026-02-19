@@ -10,7 +10,8 @@ import {
     Calendar,
     BarChart3,
     LogOut,
-    Newspaper
+    Newspaper,
+    MessageSquare
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -104,18 +105,35 @@ export function AdminSidebar({ role }: { role: string }) {
                         <span className="font-medium">Moderação Feed</span>
                     </Link>
                 )}
-                <Link
-                    href="/admin/reports"
-                    className={cn(
-                        "flex items-center px-4 py-3 rounded-lg transition-colors group",
-                        isActive("/admin/reports")
-                            ? "bg-white/10 border-l-4 border-white rounded-l-none"
-                            : "hover:bg-white/10"
-                    )}
-                >
-                    <BarChart3 className="mr-3 h-5 w-5 opacity-80 group-hover:opacity-100" />
-                    <span className="font-medium">Relatórios</span>
-                </Link>
+                {/* Community Feed - Visible to all Admin Panel users */}
+                {['administrador', 'coordenador', 'professor'].includes(role) && (
+                    <Link
+                        href="/admin/community"
+                        className={cn(
+                            "flex items-center px-4 py-3 rounded-lg transition-colors group",
+                            isActive("/admin/community")
+                                ? "bg-white/10 border-l-4 border-white rounded-l-none"
+                                : "hover:bg-white/10"
+                        )}
+                    >
+                        <MessageSquare className="mr-3 h-5 w-5 opacity-80 group-hover:opacity-100" />
+                        <span className="font-medium">Comunidade</span>
+                    </Link>
+                )}
+                {['administrador', 'coordenador'].includes(role) && (
+                    <Link
+                        href="/admin/reports"
+                        className={cn(
+                            "flex items-center px-4 py-3 rounded-lg transition-colors group",
+                            isActive("/admin/reports")
+                                ? "bg-white/10 border-l-4 border-white rounded-l-none"
+                                : "hover:bg-white/10"
+                        )}
+                    >
+                        <BarChart3 className="mr-3 h-5 w-5 opacity-80 group-hover:opacity-100" />
+                        <span className="font-medium">Relatórios</span>
+                    </Link>
+                )}
             </nav>
 
             <div className="p-4 border-t border-white/10 space-y-2">

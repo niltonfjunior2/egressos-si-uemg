@@ -53,6 +53,9 @@ Este documento guia o desenvolvimento incremental do sistema, unindo os requisit
 
 - [x] **Relatórios CEE/MG**
   - [x] Exportação de dados para conformidade com a Resolução 502/2025.
+- [x] **Melhorias de Navegação & UX**
+  - [x] Sidebar Admin: "Comunidade" acessível para admins/coords/professores (sem sair do layout).
+  - [x] Sidebar Admin: "Relatórios" restrito para admins/coords.
 
 ---
 

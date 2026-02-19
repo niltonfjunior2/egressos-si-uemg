@@ -247,3 +247,8 @@ if (error?.code === '23505') {
 **Contexto:** Usuários reclamaram da dificuldade de escrever textos longos em inputs de altura fixa.
 **Solução:** Habilitar `resize-y` e definir `min-height` generoso.
 **Prevenção:** Em campos de texto livre (posts, descrições), nunca bloquear o redimensionamento vertical (`resize-none`) a menos que estritamente necessário pelo design.
+### [2026-02-19] - [UX/ROUTING] Manutenção de Contexto em Sidebar Admin
+
+**Contexto:** Ao clicar em um link "Comunidade" na sidebar do Admin, o usuário era redirecionado para a rota `/feed` (layout do portal), perdendo a navegação administrativa.
+**Solução:** Criar uma rota dedicada `/admin/community` que reutiliza o componente de Feed (`FeedList`), mas renderizada dentro do layout `admin`.
+**Prevenção:** Se uma funcionalidade deve existir em dois contextos (Portal e Admin), não linkar para a mesma rota. Criar rotas distintas que importam o mesmo componente, preservando o layout de cada área.
