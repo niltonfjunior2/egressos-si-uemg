@@ -73,11 +73,19 @@ export default async function AdminDashboard() {
     const employedGraduates = employedProfiles?.filter(p => egressoIds.has(p.profile_id)) || []
     const uniqueEmployedGraduates = employedEgressos.size
 
-    // 4. Salary Distribution (from Employed Graduates)
-    const salaryDistribution: Record<string, number> = {}
+    // 4. Salary Distribution
+    const egressoSalaryDistribution: Record<string, number> = {}
     employedGraduates.forEach(p => {
         if (p.salary_range) {
-            salaryDistribution[p.salary_range] = (salaryDistribution[p.salary_range] || 0) + 1
+            egressoSalaryDistribution[p.salary_range] = (egressoSalaryDistribution[p.salary_range] || 0) + 1
+        }
+    })
+
+    const employedStudents = employedProfiles?.filter(p => alunoIds.has(p.profile_id)) || []
+    const alunoSalaryDistribution: Record<string, number> = {}
+    employedStudents.forEach(p => {
+        if (p.salary_range) {
+            alunoSalaryDistribution[p.salary_range] = (alunoSalaryDistribution[p.salary_range] || 0) + 1
         }
     })
 
@@ -258,31 +266,70 @@ export default async function AdminDashboard() {
                     <div className="flex justify-between items-start mb-4">
                         <h3 className="font-bold text-gray-700 dark:text-gray-200">Salários Estimados</h3>
                         <div className="text-green-500">
-                            <span className="text-xs font-bold bg-green-100 dark:bg-green-900/30 px-2 py-1 rounded">Média</span>
+                            <span className="text-xs font-bold bg-green-100 dark:bg-green-900/30 px-2 py-1 rounded">Distribuição</span>
                         </div>
                     </div>
-                    <div className="space-y-4 flex-1">
-                        {/* Render simple bars for top 3 ranges */}
-                        {Object.entries(salaryDistribution)
-                            .sort(([, a], [, b]) => b - a)
-                            .slice(0, 3)
-                            .map(([range, count]) => {
-                                const percentage = Math.round((count / (uniqueEmployedGraduates || 1)) * 100)
-                                return (
-                                    <div key={range}>
-                                        <div className="flex justify-between text-xs mb-1">
-                                            <span className="font-semibold">{range}</span>
-                                            <span className="text-gray-500">{count} egressos ({percentage}%)</span>
-                                        </div>
-                                        <div className="w-full bg-gray-100 dark:bg-slate-800 rounded-full h-2">
-                                            <div className="bg-green-500 h-2 rounded-full" style={{ width: `${percentage}%` }}></div>
-                                        </div>
-                                    </div>
-                                )
-                            })}
-                        {Object.keys(salaryDistribution).length === 0 && (
-                            <p className="text-sm text-gray-500 text-center py-4">Sem dados salariais suficientes.</p>
-                        )}
+
+                    <div className="space-y-6 flex-1 overflow-y-auto max-h-[300px] pr-2 custom-scrollbar">
+                        {/* Egressos Section */}
+                        <div>
+                            <h4 className="text-sm font-bold text-gray-500 dark:text-gray-400 mb-3 flex items-center gap-2">
+                                <div className="w-2 h-2 rounded-full bg-admin-primary"></div>
+                                Egressos
+                            </h4>
+                            <div className="space-y-3">
+                                {Object.entries(egressoSalaryDistribution)
+                                    .sort(([, a], [, b]) => b - a)
+                                    .slice(0, 3)
+                                    .map(([range, count]) => {
+                                        const percentage = Math.round((count / (employedEgressos.size || 1)) * 100)
+                                        return (
+                                            <div key={range}>
+                                                <div className="flex justify-between text-[10px] mb-1">
+                                                    <span className="font-semibold text-gray-700 dark:text-gray-300">{range}</span>
+                                                    <span className="text-gray-500">{percentage}%</span>
+                                                </div>
+                                                <div className="w-full bg-gray-100 dark:bg-slate-800 rounded-full h-1.5">
+                                                    <div className="bg-admin-primary h-1.5 rounded-full transition-all" style={{ width: `${percentage}%` }}></div>
+                                                </div>
+                                            </div>
+                                        )
+                                    })}
+                                {Object.keys(egressoSalaryDistribution).length === 0 && (
+                                    <p className="text-[10px] text-gray-500 italic">Sem dados suficientes para egressos.</p>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Alunos Section */}
+                        <div className="pt-2 border-t border-gray-100 dark:border-slate-800">
+                            <h4 className="text-sm font-bold text-gray-500 dark:text-gray-400 mb-3 flex items-center gap-2">
+                                <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                                Alunos
+                            </h4>
+                            <div className="space-y-3">
+                                {Object.entries(alunoSalaryDistribution)
+                                    .sort(([, a], [, b]) => b - a)
+                                    .slice(0, 3)
+                                    .map(([range, count]) => {
+                                        const percentage = Math.round((count / (employedAlunos.size || 1)) * 100)
+                                        return (
+                                            <div key={range}>
+                                                <div className="flex justify-between text-[10px] mb-1">
+                                                    <span className="font-semibold text-gray-700 dark:text-gray-300">{range}</span>
+                                                    <span className="text-gray-500">{percentage}%</span>
+                                                </div>
+                                                <div className="w-full bg-gray-100 dark:bg-slate-800 rounded-full h-1.5">
+                                                    <div className="bg-blue-500 h-1.5 rounded-full transition-all" style={{ width: `${percentage}%` }}></div>
+                                                </div>
+                                            </div>
+                                        )
+                                    })}
+                                {Object.keys(alunoSalaryDistribution).length === 0 && (
+                                    <p className="text-[10px] text-gray-500 italic">Sem dados suficientes para alunos.</p>
+                                )}
+                            </div>
+                        </div>
                     </div>
                 </div>
 
