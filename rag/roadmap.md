@@ -1,7 +1,7 @@
 # ROADMAP.md: EGRESSOS SI UEMG - Sistema de Acompanhamento de Egressos (UEMG)
 >
-> **Versão:** 3.1 (Refinado)
-> **Status:** Em Execução (Fase 7)
+> **Versão:** 3.2 (Integrado)
+> **Status:** Em Execução (Fase 9)
 > **Baseado em:** `PROJECT_DNA.md` (v2.0) e `lessons_learned.md`
 
 Este documento guia o desenvolvimento incremental do sistema, unindo os requisitos regulatórios (CEE/MG) com os requisitos sociais (Vagas/Feed).
@@ -123,6 +123,19 @@ Este documento guia o desenvolvimento incremental do sistema, unindo os requisit
 
 ---
 
+## FASE 9: REFATORAÇÃO & WIDGETS EXTERNOS [CONCLUÍDO]
+
+**Objetivo:** Substituição da arquitetura nativa de Feed de Notícias pela integração rápida e assíncrona do grid do Instagram via plataformas de fornecimento (CDN).
+
+- [x] **Instagram Feed Integration:**
+  - [x] Estudo de viabilidade constando obsolescência da Meta Graph API para Landing Pages orgânicas sem Token comercial.
+  - [x] Injeção do Widget Externo (`elfsight-app-b69fdb63...`) na Landing Page de forma blindada em termos de Web Vitals com componente `<Script>`.
+- [x] **Kill "The Feed":**
+  - [x] Destruição das tabelas `feed_posts` e todos os diretórios derivados do portal base e moderação admin.
+  - [x] Identificação de armadilha RBAC: Desvio de redirecionamentos de punição do Admin que apontavam para o extinto feed (Mapeados p/ Diretório).
+
+---
+
 ## FASE 5: FINALIZAÇÃO (Pendente)
 
 **Objetivo:** Polimento para produção.
@@ -149,3 +162,5 @@ Este documento guia o desenvolvimento incremental do sistema, unindo os requisit
 - **[L19]**: Métricas de Empregabilidade Segmentadas por Role.
 - **[L20]**: Agregação de Colunas ARRAY no Servidor (Server Component).
 - **[L21]**: Tokenização de Texto Livre para Tag Cloud de Insights.
+- **[L22]**: Injeção Segura de Widgets de Terceiros e Lazy Load CND (Elfsight CDN).
+- **[L23]**: Rotas Órfãs em Redirecionamentos de Punição.

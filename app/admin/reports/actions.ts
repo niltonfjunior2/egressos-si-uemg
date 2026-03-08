@@ -2,63 +2,94 @@
 
 import { createClient } from "@/utils/supabase/server"
 
-export async function generatePDIReport() {
+export async function getCompaniesReportData() {
     const supabase = await createClient()
 
-    // 1. Fetch all professional history to aggregate companies and tech
     const { data: history, error } = await supabase
         .from('professional_history')
-        .select('company_name, tech_stack, is_current')
+        .select('company_name')
 
     if (error || !history) {
-        console.error("Error fetching history for report:", error)
-        return { error: "Erro ao buscar dados." }
+        return { error: "Erro ao buscar dados de empresas." }
     }
 
-    // 2. Aggregate Companies
-    const companyCounts: Record<string, number> = {}
+    const counts: Record<string, number> = {}
     history.forEach(h => {
         if (h.company_name) {
             const name = h.company_name.trim()
-            companyCounts[name] = (companyCounts[name] || 0) + 1
+            if (name) counts[name] = (counts[name] || 0) + 1
         }
     })
 
-    const sortedCompanies = Object.entries(companyCounts)
+    const sorted = Object.entries(counts)
         .sort(([, a], [, b]) => b - a)
         .map(([name, count]) => ({ name, count }))
 
-    // 3. Aggregate Technologies
-    const techCounts: Record<string, number> = {}
+    return { data: sorted }
+}
+
+export async function getTechReportData() {
+    const supabase = await createClient()
+
+    const { data: history, error } = await supabase
+        .from('professional_history')
+        .select('tech_stack')
+
+    if (error || !history) {
+        return { error: "Erro ao buscar dados de tecnologias." }
+    }
+
+    const counts: Record<string, number> = {}
     history.forEach(h => {
         if (h.tech_stack && Array.isArray(h.tech_stack)) {
             h.tech_stack.forEach((tech: string) => {
                 const t = tech.trim()
-                techCounts[t] = (techCounts[t] || 0) + 1
+                if (t) counts[t] = (counts[t] || 0) + 1
             })
         }
     })
 
-    const sortedTech = Object.entries(techCounts)
+    const sorted = Object.entries(counts)
         .sort(([, a], [, b]) => b - a)
         .map(([name, count]) => ({ name, count }))
 
-    // 4. Generate CSV Content
-    // Section 1: Top Companies
-    let csv = "RELATÓRIO PDI - EGRESSOS SI UEMG\n"
-    csv += `Gerado em: ${new Date().toLocaleString()}\n\n`
+    return { data: sorted }
+}
 
-    csv += "--- EMPRESAS PARCEIRAS (Top 50) ---\n"
-    csv += "Empresa,Quantidade de Egressos\n"
-    sortedCompanies.slice(0, 50).forEach(c => {
-        csv += `"${c.name}",${c.count}\n`
+export async function getCensusReportData() {
+    const supabase = await createClient()
+
+    // Query profiles fetching relevant academic data
+    const { data: profiles, error } = await supabase
+        .from('profiles')
+        .select(`
+            full_name,
+            email,
+            role,
+            academic_records(entry_year, graduation_year, student_id_code, status)
+        `)
+        .in('role', ['aluno', 'egresso'])
+        .order('full_name', { ascending: true })
+
+    if (error || !profiles) {
+        return { error: "Erro ao buscar dados do censo." }
+    }
+
+    const reportData = profiles.map(p => {
+        const _rawAcademic = Array.isArray(p.academic_records) ? p.academic_records : (p.academic_records ? [p.academic_records] : [])
+        // Get the latest/primary academic record based on the UEMG flow we fixed earlier
+        const primaryAc = _rawAcademic.sort((a: any, b: any) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime())[0]
+
+        return {
+            name: p.full_name,
+            email: p.email,
+            role: p.role === 'egresso' ? 'Egresso' : 'Aluno',
+            status: primaryAc?.status ? primaryAc.status.toUpperCase() : 'N/A',
+            entryYear: primaryAc?.entry_year || 'N/A',
+            graduationYear: primaryAc?.graduation_year || 'N/A',
+            studentId: primaryAc?.student_id_code || 'N/A'
+        }
     })
 
-    csv += "\n--- TECNOLOGIAS MAIS UTILIZADAS ---\n"
-    csv += "Tecnologia,Ocorrências\n"
-    sortedTech.forEach(t => {
-        csv += `"${t.name}",${t.count}\n`
-    })
-
-    return { csv }
+    return { data: reportData }
 }

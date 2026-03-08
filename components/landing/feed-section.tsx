@@ -1,10 +1,10 @@
 "use client"
 
 import { FeedList } from "@/components/feed/feed-list"
-import { Post } from "@/components/feed/types"
 import { Job } from "@/components/jobs/types"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
+import Script from "next/script"
 import { MentorCard } from "./mentor-card"
 import { JobCard } from "./job-card"
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
@@ -21,13 +21,11 @@ import {
 import { Badge } from "@/components/ui/badge"
 
 interface FeedSectionProps {
-    posts: Post[]
     mentors: any[]
     jobs: Job[]
 }
 
-export function FeedSection({ posts, mentors, jobs }: FeedSectionProps) {
-    const [selectedPost, setSelectedPost] = useState<Post | null>(null)
+export function FeedSection({ mentors, jobs }: FeedSectionProps) {
     const [selectedJob, setSelectedJob] = useState<Job | null>(null)
     const [selectedMentor, setSelectedMentor] = useState<any | null>(null)
 
@@ -59,6 +57,7 @@ export function FeedSection({ posts, mentors, jobs }: FeedSectionProps) {
                                     <MentorCard
                                         key={mentor.id}
                                         full_name={mentor.full_name}
+                                        role={mentor.role}
                                         role_title={mentor.professional_history?.[0]?.role_title}
                                         company_name={mentor.professional_history?.[0]?.company_name}
                                         tech_stack={mentor.professional_history?.[0]?.tech_stack}
@@ -101,67 +100,26 @@ export function FeedSection({ posts, mentors, jobs }: FeedSectionProps) {
                         </ScrollArea>
                     </div>
 
-                    {/* Row 3: Feed News */}
+                    {/* Row 3: Instagram Feed */}
                     <div className="space-y-6">
                         <div className="flex items-center justify-between">
                             <h4 className="text-2xl font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
-                                <span className="bg-green-500/10 text-green-600 p-2 rounded-lg">📰</span>
-                                Notícias da Comunidade
+                                <span className="bg-pink-500/10 text-pink-600 p-2 rounded-lg">📸</span>
+                                Nosso Instagram
                             </h4>
-                            <Link href="/signup" className="text-sm font-semibold text-primary hover:text-primary/80 flex items-center gap-1">
-                                MOSTRAR MAIS NOTÍCIAS <ArrowRight size={16} />
+                            <Link href="https://instagram.com" target="_blank" className="text-sm font-semibold text-primary hover:text-primary/80 flex items-center gap-1">
+                                VER NO INSTAGRAM <ArrowRight size={16} />
                             </Link>
                         </div>
 
-                        {/* Feed Layout */}
-                        <div className="grid md:grid-cols-3 gap-6">
-                            {posts.slice(0, 3).map((post) => (
-                                <div
-                                    key={post.id}
-                                    className="h-full cursor-pointer hover:scale-[1.02] transition-transform duration-200"
-                                    onClick={() => setSelectedPost(post)}
-                                >
-                                    <div className="bg-slate-100 dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700 h-full flex flex-col hover:shadow-md transition-shadow">
-                                        <div className="flex items-center gap-3 mb-4">
-                                            <div>
-                                                <p className="font-semibold text-sm">{post.profiles?.full_name}</p>
-                                                <p className="text-xs text-slate-500">
-                                                    {new Date(post.created_at).toLocaleDateString('pt-BR')}
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <p className="text-slate-600 dark:text-slate-300 text-sm line-clamp-4 flex-grow">
-                                            {post.content}
-                                        </p>
-                                        <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700 text-xs text-primary font-medium">
-                                            Ler mais
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
+                        {/* Elfsight Widget */}
+                        <div className="w-full relative z-10 p-2 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-800">
+                            <Script src="https://elfsightcdn.com/platform.js" strategy="lazyOnload" />
+                            <div className="elfsight-app-b69fdb63-d325-420f-97d3-fe8ef9bafd62" data-elfsight-app-lazy></div>
                         </div>
                     </div>
                 </div>
             </div>
-
-            {/* Post Dialog */}
-            <Dialog open={!!selectedPost} onOpenChange={(open) => !open && setSelectedPost(null)}>
-                <DialogContent className="sm:max-w-2xl">
-                    <DialogHeader>
-                        <DialogTitle className="flex items-center gap-2">
-                            <span>{selectedPost?.profiles?.full_name}</span>
-                            <span className="text-xs font-normal text-slate-500">
-                                {selectedPost && new Date(selectedPost.created_at).toLocaleDateString('pt-BR')}
-                            </span>
-                        </DialogTitle>
-                    </DialogHeader>
-                    <div className="mt-4 space-y-4">
-                        <div className="text-slate-700 dark:text-slate-300 whitespace-pre-wrap leading-relaxed">
-                            {selectedPost?.content}
-                        </div>
-                    </div>
-                </DialogContent>
-            </Dialog>
 
             {/* Job Dialog */}
             <Dialog open={!!selectedJob} onOpenChange={(open) => !open && setSelectedJob(null)}>
@@ -220,7 +178,11 @@ export function FeedSection({ posts, mentors, jobs }: FeedSectionProps) {
                             </div>
                             <div>
                                 <div className="text-xl font-bold">{selectedMentor?.full_name}</div>
-                                <div className="text-sm text-slate-500 font-normal">Egresso de Sistemas de Informação</div>
+                                <div className="text-sm text-slate-500 font-normal">
+                                    {selectedMentor?.role 
+                                        ? selectedMentor.role.charAt(0).toUpperCase() + selectedMentor.role.slice(1) + " de Sistemas de Informação" 
+                                        : "Egresso de Sistemas de Informação"}
+                                </div>
                             </div>
                         </DialogTitle>
                     </DialogHeader>

@@ -224,10 +224,14 @@ export function ProfileWizard({
 
                 if (profileRes.error) throw new Error(profileRes.error);
 
+                const gradYearNum = parseInt(personalData.graduationYear);
+                const currentYear = new Date().getFullYear();
+                const computedStatus = gradYearNum <= currentYear ? "formado" : "cursando";
+
                 await addAcademicRecord({
                     entryYear: parseInt(personalData.entryYear),
-                    graduationYear: parseInt(personalData.graduationYear),
-                    status: "formado",
+                    graduationYear: gradYearNum,
+                    status: computedStatus,
                     studentIdCode: "",
                 } as any);
 
@@ -332,7 +336,7 @@ export function ProfileWizard({
                     setStep((s) => (s + 1) as Step);
                 } else {
                     toast.success("Perfil atualizado com sucesso!");
-                    router.push("/feed");
+                    router.push("/directory");
                 }
             }
         } catch (error: any) {

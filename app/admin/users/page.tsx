@@ -33,7 +33,7 @@ import { createClient } from "@/utils/supabase/server"
 export default async function UsersPage({
     searchParams,
 }: {
-    searchParams: { [key: string]: string | string[] | undefined }
+    searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }) {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
@@ -48,14 +48,17 @@ export default async function UsersPage({
 
     if (!profile || profile.role !== 'administrador') redirect('/admin')
 
-    const page = typeof searchParams.page === 'string' ? parseInt(searchParams.page) : 1
-    const search = typeof searchParams.search === 'string' ? searchParams.search : ''
-    const role = typeof searchParams.role === 'string' ? searchParams.role : 'all'
-    const status = typeof searchParams.status === 'string' ? searchParams.status : 'all'
-    const graduationYear = typeof searchParams.graduationYear === 'string' ? searchParams.graduationYear : 'all'
-    const mentoring = typeof searchParams.mentoring === 'string' ? searchParams.mentoring : 'all'
+    const sp = await searchParams
+    const page = typeof sp.page === 'string' ? parseInt(sp.page) : 1
+    const limitParams = typeof sp.limit === 'string' ? parseInt(sp.limit) : 100
+    const limit = [100, 200, 500].includes(limitParams) ? limitParams : 100
+    const search = typeof sp.search === 'string' ? sp.search : ''
+    const role = typeof sp.role === 'string' ? sp.role : 'all'
+    const status = typeof sp.status === 'string' ? sp.status : 'all'
+    const graduationYear = typeof sp.graduationYear === 'string' ? sp.graduationYear : 'all'
+    const mentoring = typeof sp.mentoring === 'string' ? sp.mentoring : 'all'
 
-    const { users, count, error } = await getUsers(page, 10, {
+    const { users, count, error } = await getUsers(page, limit, {
         search,
         role,
         status,
@@ -95,74 +98,76 @@ export default async function UsersPage({
             </div>
 
             {/* Filters Bar */}
-            <div className="flex flex-col gap-4 bg-white dark:bg-slate-900 p-4 rounded-lg border border-gray-200 dark:border-slate-800 shadow-sm">
+            <form className="flex flex-col gap-4 bg-white dark:bg-slate-900 p-4 rounded-lg border border-gray-200 dark:border-slate-800 shadow-sm">
                 <div className="flex flex-col md:flex-row gap-4">
                     <div className="relative flex-1">
                         <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
-                        <form>
-                            <Input
-                                name="search"
-                                defaultValue={search}
-                                placeholder="Buscar por nome ou email..."
-                                className="pl-9 bg-gray-50 dark:bg-slate-800 w-full"
-                            />
-                            {role !== 'all' && <input type="hidden" name="role" value={role} />}
-                        </form>
+                        <Input
+                            name="search"
+                            defaultValue={search}
+                            placeholder="Buscar por nome ou email..."
+                            className="pl-9 bg-gray-50 dark:bg-slate-800 w-full"
+                        />
+                        <input type="hidden" name="role" value={role} />
                     </div>
 
-                    <div className="flex gap-2 min-w-[200px]">
-                        {/* We need client interaction for these selects to update URL or use Forms */}
-                        {/* For simplicity in server components without client hooks, simple links or forms works. 
-                             Using a Form with auto-submit on change is best for Server Components, but requires Client Wrapper.
-                             I'll simply use Links for the pill buttons (Role) and maybe a clear filter button.
-                             To keep it simple: Just render Links for filters or use a form with a "Filtrar" button?
-                             "Filtrar" button is safest for Server Components.
-                         */}
-                        <form className="flex gap-2 items-center flex-wrap">
-                            <input type="hidden" name="search" value={search} />
-                            <input type="hidden" name="role" value={role} />
+                    <div className="flex gap-2 min-w-[200px] flex-wrap md:flex-nowrap">
+                        <select
+                            name="graduationYear"
+                            defaultValue={graduationYear}
+                            className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                        >
+                            <option value="all">Todos os Anos</option>
+                            {years.map(y => <option key={y} value={y}>{y}</option>)}
+                        </select>
 
-                            <select
-                                name="graduationYear"
-                                defaultValue={graduationYear}
-                                className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                            >
-                                <option value="all">Todos os Anos</option>
-                                {years.map(y => <option key={y} value={y}>{y}</option>)}
-                            </select>
+                        <select
+                            name="status"
+                            defaultValue={status}
+                            className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                        >
+                            <option value="all">Todos Status</option>
+                            <option value="formado">Formado</option>
+                            <option value="cursando">Cursando</option>
+                            <option value="trancado">Trancado</option>
+                            <option value="desligado">Desligado</option>
+                        </select>
 
-                            <select
-                                name="status"
-                                defaultValue={status}
-                                className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                            >
-                                <option value="all">Todos Status</option>
-                                <option value="formado">Formado</option>
-                                <option value="cursando">Cursando</option>
-                                <option value="trancado">Trancado</option>
-                                <option value="desistente">Desistente</option>
-                            </select>
+                        <select
+                            name="limit"
+                            defaultValue={limit.toString()}
+                            className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                        >
+                            <option value="100">100 registros</option>
+                            <option value="200">200 registros</option>
+                            <option value="500">500 registros</option>
+                        </select>
 
-                            <Button type="submit" variant="secondary">Filtrar</Button>
-                        </form>
+                        <Button type="submit" variant="secondary">Filtrar</Button>
                     </div>
                 </div>
 
                 <div className="flex gap-2 overflow-x-auto pb-2">
-                    <Link href={`/admin/users?role=all&search=${search}`}>
-                        <Button variant={role === 'all' ? "default" : "outline"} size="sm">Todos</Button>
+                    <Link href={`/admin/users?role=all&search=${encodeURIComponent(search)}&graduationYear=${graduationYear}&status=${status}&limit=${limit}`}>
+                        <Button type="button" variant={role === 'all' ? "default" : "outline"} size="sm">Todos</Button>
                     </Link>
-                    <Link href={`/admin/users?role=egresso&search=${search}`}>
-                        <Button variant={role === 'egresso' ? "default" : "outline"} size="sm">Egressos</Button>
+                    <Link href={`/admin/users?role=egresso&search=${encodeURIComponent(search)}&graduationYear=${graduationYear}&status=${status}&limit=${limit}`}>
+                        <Button type="button" variant={role === 'egresso' ? "default" : "outline"} size="sm">Egressos</Button>
                     </Link>
-                    <Link href={`/admin/users?role=professor&search=${search}`}>
-                        <Button variant={role === 'professor' ? "default" : "outline"} size="sm">Professores</Button>
+                    <Link href={`/admin/users?role=professor&search=${encodeURIComponent(search)}&graduationYear=${graduationYear}&status=${status}&limit=${limit}`}>
+                        <Button type="button" variant={role === 'professor' ? "default" : "outline"} size="sm">Professores</Button>
                     </Link>
-                    <Link href={`/admin/users?role=aluno&search=${search}`}>
-                        <Button variant={role === 'aluno' ? "default" : "outline"} size="sm">Alunos</Button>
+                    <Link href={`/admin/users?role=aluno&search=${encodeURIComponent(search)}&graduationYear=${graduationYear}&status=${status}&limit=${limit}`}>
+                        <Button type="button" variant={role === 'aluno' ? "default" : "outline"} size="sm">Alunos</Button>
+                    </Link>
+                    <Link href={`/admin/users?role=coordenador&search=${encodeURIComponent(search)}&graduationYear=${graduationYear}&status=${status}&limit=${limit}`}>
+                        <Button type="button" variant={role === 'coordenador' ? "default" : "outline"} size="sm">Coordenação</Button>
+                    </Link>
+                    <Link href={`/admin/users?role=administrador&search=${encodeURIComponent(search)}&graduationYear=${graduationYear}&status=${status}&limit=${limit}`}>
+                        <Button type="button" variant={role === 'administrador' ? "default" : "outline"} size="sm">Admins</Button>
                     </Link>
                 </div>
-            </div>
+            </form>
 
             {/* Users Table */}
             <div className="bg-white dark:bg-slate-900 rounded-lg border border-gray-200 dark:border-slate-800 shadow-sm overflow-hidden">

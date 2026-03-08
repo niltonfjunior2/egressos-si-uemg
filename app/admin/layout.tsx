@@ -30,7 +30,7 @@ export default async function AdminLayout({
         .single()
 
     if (!profile || !['administrador', 'coordenador', 'professor'].includes(profile.role)) {
-        redirect('/feed')
+        redirect('/directory')
     }
 
     return (

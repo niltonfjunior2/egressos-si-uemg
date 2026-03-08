@@ -254,6 +254,18 @@ if (error?.code === '23505') {
 **Solução:** Criar uma rota dedicada `/admin/community` que reutiliza o componente de Feed (`FeedList`), mas renderizada dentro do layout `admin`.
 **Prevenção:** Se uma funcionalidade deve existir em dois contextos (Portal e Admin), não linkar para a mesma rota. Criar rotas distintas que importam o mesmo componente, preservando o layout de cada área.
 
+### [2026-03-08] - [EXT-WIDGET] Injeção Segura de Widgets de Terceiros (Elfsight CDN)
+
+**Contexto:** O encerramento da API "Basic Display" do Instagram em Dez. 2024 forçou a substituição de desenvolvimentos nativos complexos pelo uso do Iframe da **Elfsight**.
+**Solução:** Injetar bibliotecas como o `platform.js` da plataforma externa utilizando o componente otimizado do framework: `<Script src="https://elfsightcdn.com/platform.js" strategy="lazyOnload" />`.
+**Prevenção (Armadilha):** Um widget visualmente denso do Instagram puxará inúmeras imagens do servidor externo e bloqueará o First Input Delay (FID) se for executado como Javascript síncrono no fim da página de pouso. O uso obrigatório do `strategy="lazyOnload"` garante que os rastreadores leiam a página rápido sem esperar pelas imagens sociais da plataforma alheia.
+
+### [2026-03-08] - [ARCH/REFACTOR] Rotas Órfãs em Redirecionamentos de Punição
+
+**Contexto:** Ao remover a funcionalidade nativa do Feed, a pasta global `app/feed` foi excluída. Imediatamente após, o build e o servidor (`npm run dev`) começaram a apontar falhas de 404 e tela em branco escondidas no painel Administrativo.
+**Solução:** A pasta apagada estava sendo silenciosamente invocada por lógicas de RBAC (Role-Based Access Control) dentro de arquivos cruciais de layout (ex. se o aluno tentar entrar no Admin Panel, o script dava `redirect('/feed')`). A rota de escape foi corrigida para `/directory`.
+**Prevenção:** Em aplicações Next.js grandes, não basta remover os sidebars ou links visíveis de um diretório recém-apagado. Devemos sempre fazer uma busca textual (`grep`) pelo caminho raiz (ex: `/feed`) para estancar redirects de segurança codificados em Middlewares e Server Actions antes de deletar as pastas.
+
 ### [2026-02-20] - [ARCH/DASHBOARD] Métricas de Empregabilidade Segmentadas por Role
 
 **Contexto:** O dashboard exibia uma única "Taxa de Empregabilidade" calculada sobre os formados. Isso obscurecia a realidade: Alunos (ainda cursando) e Egressos (formados) têm contextos de carreira distintos e devem ser medidos separadamente.

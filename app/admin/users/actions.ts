@@ -41,7 +41,7 @@ export async function getUsers(page = 1, limit = 10, filters: UserFilters = {}) 
             ${academicJoin}(graduation_year, status),
             professional_history(company_name, role_title, is_current)
         `, { count: 'exact' })
-        .order('created_at', { ascending: false })
+        .order('full_name', { ascending: true })
 
     // Apply Filters
 

@@ -6,28 +6,11 @@ import { BenefitsSection } from "@/components/landing/benefits-section"
 import { FeedSection } from "@/components/landing/feed-section"
 import { CtaSection } from "@/components/landing/cta-section"
 import { Footer } from "@/components/landing/footer"
-import { Post } from "@/components/feed/types"
 
 export default async function Home() {
   const supabase = await createClient()
 
-  // Fetch latest 3 posts for public view
-  const { data: posts } = await supabase
-    .from('feed_posts')
-    .select(`
-      id,
-      content,
-      created_at,
-      author_id,
-      profiles:author_id (
-        full_name,
-        role
-      )
-    `)
-    .eq('status', 'approved')
-    .order('is_pinned', { ascending: false })
-    .order('created_at', { ascending: false })
-    .limit(3)
+
 
   // Fetch latest 6 mentors (students/alumni open to mentoring)
   const { data: mentors } = await supabase
@@ -67,7 +50,6 @@ export default async function Home() {
         {/*<StatsSection />*/}
         <BenefitsSection />
         <FeedSection
-          posts={(posts || []) as unknown as Post[]}
           mentors={mentors || []}
           jobs={jobs || []}
         />

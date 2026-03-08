@@ -2,13 +2,18 @@ import { Badge } from "@/components/ui/badge"
 
 interface MentorCardProps {
     full_name: string
+    role?: string
     role_title?: string
     company_name?: string
     tech_stack?: string[]
     onClick?: () => void
 }
 
-export function MentorCard({ full_name, role_title, company_name, tech_stack, onClick }: MentorCardProps) {
+export function MentorCard({ full_name, role, role_title, company_name, tech_stack, onClick }: MentorCardProps) {
+    const displayRole = role 
+        ? role.charAt(0).toUpperCase() + role.slice(1) + " de SI"
+        : "Egresso de SI"
+
     return (
         <div
             onClick={onClick}
@@ -20,7 +25,7 @@ export function MentorCard({ full_name, role_title, company_name, tech_stack, on
                         {full_name}
                     </h4>
                     <p className="text-xs text-slate-500 dark:text-slate-400">
-                        Egresso SI
+                        {displayRole}
                     </p>
                 </div>
             </div>

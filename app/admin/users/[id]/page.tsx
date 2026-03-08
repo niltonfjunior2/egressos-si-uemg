@@ -21,7 +21,7 @@ export default async function UserDetailsPage({ params }: { params: Promise<{ id
     // Fetch current user role to ensure admin
     const { data: adminProfile } = await supabaseAuth.from('profiles').select('role').eq('id', currentUser.user.id).single()
     if (!adminProfile || !['administrador', 'coordenador'].includes(adminProfile.role)) {
-        redirect('/feed')
+        redirect('/directory')
     }
 
     const { id } = await params
@@ -57,10 +57,21 @@ export default async function UserDetailsPage({ params }: { params: Promise<{ id
         )
     }
 
-    // Sort histories
-    const academic = profile.academic_records || []
-    const professional = (profile.professional_history || []).sort((a: any, b: any) => new Date(b.start_date).getTime() - new Date(a.start_date).getTime())
-    const education = (profile.education_history || []).sort((a: any, b: any) => new Date(b.start_date).getTime() - new Date(a.start_date).getTime())
+    // Sort and deduplicate histories based on content (not ID, as duplicate inserts generate new IDs)
+    const _rawAcademic = Array.isArray(profile.academic_records) ? profile.academic_records : (profile.academic_records ? [profile.academic_records] : [])
+    const academic = _rawAcademic
+        .sort((a: any, b: any) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime())
+        .slice(0, 1)
+
+    const _rawProfessional = profile.professional_history || []
+    const professional = _rawProfessional
+        .filter((v: any, i: number, a: any[]) => a.findIndex(t => t.company_name === v.company_name && t.role_title === v.role_title) === i)
+        .sort((a: any, b: any) => new Date(b.start_date || 0).getTime() - new Date(a.start_date || 0).getTime())
+
+    const _rawEducation = profile.education_history || []
+    const education = _rawEducation
+        .filter((v: any, i: number, a: any[]) => a.findIndex(t => t.institution_name === v.institution_name && t.course_name === v.course_name) === i)
+        .sort((a: any, b: any) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime())
     const interests = profile.opportunity_interests || []
     const survey = profile.profile_surveys?.[0] || profile.profile_surveys || null // Handle single vs array depending on relation, though it's 1:1 typically returning array or object in supabase join? .single() on top might not apply to nested. Usually returns array. Let's assume array.
 
