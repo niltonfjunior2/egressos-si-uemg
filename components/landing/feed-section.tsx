@@ -1,6 +1,5 @@
 "use client"
 
-import { FeedList } from "@/components/feed/feed-list"
 import { Job } from "@/components/jobs/types"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
