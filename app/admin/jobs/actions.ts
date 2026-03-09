@@ -1,6 +1,6 @@
 'use server'
 
-import { createClient } from '@/utils/supabase/server'
+import { createClient, createAdminClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 
@@ -136,7 +136,11 @@ export async function updateJob(formData: FormData) {
         return { error: 'Você não tem permissão para editar esta vaga.' }
     }
 
-    const { error } = await supabase
+    // Use admin client if the user is admin/coord to bypass RLS "silent block" on update
+    // Default RLS might block updates on records they don't own, even if their UI allows it
+    const db = isAdminOrCoord ? createAdminClient() : supabase;
+
+    const { data: updatedJob, error } = await db
         .from('opportunities')
         .update({
             title: validated.data.title,
@@ -151,9 +155,15 @@ export async function updateJob(formData: FormData) {
             status: validated.data.status, // Allow status update
         })
         .eq('id', validated.data.id)
+        .select()
+        .single()
 
     if (error) {
         return { error: 'Erro ao atualizar vaga: ' + error.message }
+    }
+
+    if (!updatedJob) {
+        return { error: 'A atualização falhou silenciosamente. Verifique as permissões (RLS).' }
     }
 
     revalidatePath('/admin/jobs')

@@ -37,21 +37,24 @@ export function JobFormDialog({ jobToEdit, triggerArg }: { jobToEdit?: any, trig
     async function handleSubmit(formData: FormData) {
         setLoading(true)
 
-        // Append controlled fields
+        // The Select components are controlled by state and have a name attribute,
+        // so their values are already in FormData if the user changes them.
+        // However, if the user doesn't change them, the default value might not be in FormData
+        // depending on the Radix UI Select implementation.
+        // It's safer to explicitly set them from our React state to guarantee they are sent.
         formData.set('type', type)
         formData.set('work_mode', workMode)
-        if (jobToEdit) {
-            formData.set('status', status)
-        }
 
         if (jobToEdit) {
-            formData.append('id', jobToEdit.id)
+            formData.set('id', jobToEdit.id)
+            formData.set('status', status)
+            
             const result = await updateJob(formData)
             setLoading(false)
             if (result?.error) {
                 toast.error(result.error)
             } else {
-                toast.success(result.success)
+                toast.success(result?.success || 'Vaga atualizada com sucesso!')
                 setOpen(false)
             }
         } else {
@@ -60,7 +63,7 @@ export function JobFormDialog({ jobToEdit, triggerArg }: { jobToEdit?: any, trig
             if (result?.error) {
                 toast.error(result.error)
             } else {
-                toast.success(result.success)
+                toast.success(result?.success || 'Vaga criada com sucesso!')
                 setOpen(false)
             }
         }
