@@ -1,16 +1,8 @@
 import { createClient } from "@/utils/supabase/server"
-import { Navbar } from "@/components/landing/navbar"
-import { HeroSection } from "@/components/landing/hero-section"
-// import { StatsSection } from "@/components/landing/stats-section"
-import { BenefitsSection } from "@/components/landing/benefits-section"
-import { FeedSection } from "@/components/landing/feed-section"
-import { CtaSection } from "@/components/landing/cta-section"
-import { Footer } from "@/components/landing/footer"
+import { PageContent } from "./page-content"
 
 export default async function Home() {
   const supabase = await createClient()
-
-
 
   // Fetch latest 6 mentors (students/alumni open to mentoring)
   const { data: mentors } = await supabase
@@ -42,20 +34,5 @@ export default async function Home() {
     .order('created_at', { ascending: false })
     .limit(6)
 
-  return (
-    <div className="flex min-h-screen flex-col bg-background-light dark:bg-background-dark font-sans text-slate-900 dark:text-slate-100 transition-colors duration-300">
-      <Navbar />
-      <main>
-        <HeroSection />
-        {/*<StatsSection />*/}
-        <BenefitsSection />
-        <FeedSection
-          mentors={mentors || []}
-          jobs={jobs || []}
-        />
-        <CtaSection />
-      </main>
-      <Footer />
-    </div>
-  )
+  return <PageContent mentors={mentors || []} jobs={jobs || []} />
 }

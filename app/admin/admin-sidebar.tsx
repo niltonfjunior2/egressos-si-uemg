@@ -10,7 +10,8 @@ import {
     Calendar,
     BarChart3,
     LogOut,
-    MessageSquare
+    MessageSquare,
+    Settings
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -103,6 +104,21 @@ export function AdminSidebar({ role }: { role: string }) {
                     >
                         <BarChart3 className="mr-3 h-5 w-5 opacity-80 group-hover:opacity-100" />
                         <span className="font-medium">Relatórios</span>
+                    </Link>
+                )}
+
+                {role === 'administrador' && (
+                    <Link
+                        href="/admin/settings"
+                        className={cn(
+                            "flex items-center px-4 py-3 rounded-lg transition-colors group",
+                            isActive("/admin/settings")
+                                ? "bg-white/10 border-l-4 border-white rounded-l-none"
+                                : "hover:bg-white/10"
+                        )}
+                    >
+                        <Settings className="mr-3 h-5 w-5 opacity-80 group-hover:opacity-100" />
+                        <span className="font-medium">Configurações</span>
                     </Link>
                 )}
             </nav>
