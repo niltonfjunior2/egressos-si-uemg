@@ -1,5 +1,7 @@
 "use client"
 
+import { useEffect, useState } from "react"
+
 import { Navbar } from "@/components/landing/navbar"
 import { HeroSection } from "@/components/landing/hero-section"
 import { BenefitsSection } from "@/components/landing/benefits-section"
@@ -16,6 +18,18 @@ interface PageContentProps {
 
 export function PageContent({ mentors, jobs }: PageContentProps) {
   const isElectionMode = useAppStore((state) => state.isElectionMode)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  if (!mounted) {
+    // Renderiza um estado nulo ou um loader simples para evitar mismatch de hidratação
+    // Opcionalmente, pode-se renderizar o layout padrão se quisermos assumir que não é época de eleição por padrão.
+    // Mas para evitar mismatch absoluto com persistência local, null ou esqueleto é seguro.
+    return null
+  }
 
   if (isElectionMode) {
     return (
