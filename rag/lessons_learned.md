@@ -283,3 +283,9 @@ if (error?.code === '23505') {
 **Contexto:** O campo `missing_technologies` é texto livre (ex: "Faltou Docker, Kubernetes e mais práticas de DevOps"). Para exibir uma nuvem de tags com as tecnologias mais citadas, é necessário tokenizar e contar frequência de palavras.
 **Solução:** Fazer `.toLowerCase().split(/[\s,;./\-\n]+/)`, filtrar termos com menos de 3 caracteres e aplicar uma lista de stopwords (`de`, `do`, `da`, `e`, `com` etc.). O peso visual de cada tag (tamanho/opacidade) é proporcional a `count / maxCount`.
 **Prevenção:** Campos de texto livre nunca devem ser exibidos brutos em dashboards. Sempre pré-processar com tokenização + stopwords antes de calcular frequência. Definir stopwords explícitas no código — não depender de bibliotecas externas para esse caso simples.
+
+### [2026-05-23] - [ARCH/COMPLIANCE] Componentes em Modos de Restrição (Vedação Eleitoral)
+
+**Contexto:** O componente `FeedSection` exibia Vagas, Mentores e o feed do Instagram. Durante o Modo de Vedação Eleitoral, precisávamos exibir as Vagas e Mentores, mas a exibição do Instagram violaria as leis eleitorais sobre publicidade institucional.
+**Solução:** Em vez de duplicar componentes ou criar um `FeedSectionElection`, foi adicionada a prop `hideInstagramFeed?: boolean` ao `FeedSectionProps`. Na renderização em `isElectionMode`, o componente é chamado com a prop `true`.
+**Prevenção:** Ao reaproveitar componentes "agregadores" em páginas com rigoroso compliance legal ou restrição de acesso, isole seções sensíveis (widgets de terceiros, redes sociais) atrás de flags condicionais de visibilidade explícitas.

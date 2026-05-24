@@ -36,6 +36,9 @@ export function PageContent({ mentors, jobs }: PageContentProps) {
       <div className="flex min-h-screen flex-col bg-slate-100 dark:bg-slate-900 font-sans text-slate-900 dark:text-slate-100 transition-colors duration-300">
         <main className="flex-1 flex flex-col items-center justify-center">
             <ElectionHero />
+            <div className="w-full">
+              <FeedSection mentors={mentors} jobs={jobs} hideInstagramFeed={true} />
+            </div>
         </main>
       </div>
     )

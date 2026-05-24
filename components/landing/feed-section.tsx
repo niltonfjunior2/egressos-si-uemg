@@ -22,9 +22,10 @@ import { Badge } from "@/components/ui/badge"
 interface FeedSectionProps {
     mentors: any[]
     jobs: Job[]
+    hideInstagramFeed?: boolean
 }
 
-export function FeedSection({ mentors, jobs }: FeedSectionProps) {
+export function FeedSection({ mentors, jobs, hideInstagramFeed }: FeedSectionProps) {
     const [selectedJob, setSelectedJob] = useState<Job | null>(null)
     const [selectedMentor, setSelectedMentor] = useState<any | null>(null)
 
@@ -100,23 +101,25 @@ export function FeedSection({ mentors, jobs }: FeedSectionProps) {
                     </div>
 
                     {/* Row 3: Instagram Feed */}
-                    <div className="space-y-6">
-                        <div className="flex items-center justify-between">
-                            <h4 className="text-2xl font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
-                                <span className="bg-pink-500/10 text-pink-600 p-2 rounded-lg">📸</span>
-                                Nosso Instagram
-                            </h4>
-                            <Link href="https://instagram.com" target="_blank" className="text-sm font-semibold text-primary hover:text-primary/80 flex items-center gap-1">
-                                VER NO INSTAGRAM <ArrowRight size={16} />
-                            </Link>
-                        </div>
+                    {!hideInstagramFeed && (
+                        <div className="space-y-6">
+                            <div className="flex items-center justify-between">
+                                <h4 className="text-2xl font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                                    <span className="bg-pink-500/10 text-pink-600 p-2 rounded-lg">📸</span>
+                                    Nosso Instagram
+                                </h4>
+                                <Link href="https://instagram.com" target="_blank" className="text-sm font-semibold text-primary hover:text-primary/80 flex items-center gap-1">
+                                    VER NO INSTAGRAM <ArrowRight size={16} />
+                                </Link>
+                            </div>
 
-                        {/* Elfsight Widget */}
-                        <div className="w-full relative z-10 p-2 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-800">
-                            <Script src="https://elfsightcdn.com/platform.js" strategy="lazyOnload" />
-                            <div className="elfsight-app-b69fdb63-d325-420f-97d3-fe8ef9bafd62" data-elfsight-app-lazy></div>
+                            {/* Elfsight Widget */}
+                            <div className="w-full relative z-10 p-2 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-800">
+                                <Script src="https://elfsightcdn.com/platform.js" strategy="lazyOnload" />
+                                <div className="elfsight-app-b69fdb63-d325-420f-97d3-fe8ef9bafd62" data-elfsight-app-lazy></div>
+                            </div>
                         </div>
-                    </div>
+                    )}
                 </div>
             </div>
 

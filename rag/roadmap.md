@@ -144,6 +144,9 @@ Este documento guia o desenvolvimento incremental do sistema, unindo os requisit
   - [ ] Verificar todas as políticas RLS (revisão final).
   - [ ] Otimizar imagens (Next/Image).
   - [ ] Documentação final (`README.md`).
+- [x] **Ajustes de Compliance Legal**
+  - [x] Ocultação seletiva de widgets externos (Instagram) no Modo de Vedação Eleitoral.
+  - [x] Exibição contínua de utilidade pública (Vagas e Mentores) durante vedação.
 
 ---
 
