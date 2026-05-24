@@ -2,7 +2,19 @@
 import { createAdminClient } from "@/lib/supabase/admin"
 import { NextResponse } from "next/server"
 
-export async function GET() {
+export async function GET(request: Request) {
+    const { searchParams } = new URL(request.url)
+    const secret = searchParams.get('secret')
+
+    // SECURITY: Block execution in production or without secret
+    if (process.env.NODE_ENV !== 'development' && secret !== process.env.SEED_SECRET) {
+        return NextResponse.json({ error: 'Forbidden.' }, { status: 403 })
+    }
+
+    if (process.env.NODE_ENV === 'development' && secret !== 'dev-secret-123') {
+         return NextResponse.json({ error: 'Forbidden.' }, { status: 403 })
+    }
+
     const supabase = createAdminClient()
     const email = 'admin-egressos@uemg.br'
     const password = 'adminegressos'

@@ -25,7 +25,19 @@ interface UserFilters {
     mentoring?: string // 'true' | 'false'
 }
 
+async function checkAdminAccess() {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return false
+
+    const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+    return profile && ['administrador', 'coordenador'].includes(profile.role)
+}
+
 export async function getUsers(page = 1, limit = 10, filters: UserFilters = {}) {
+    if (!(await checkAdminAccess())) {
+        return { users: [], count: 0, error: 'Não autorizado' }
+    }
     const supabase = createAdminClient()
 
     // Determine if we need an inner join for filtering on academic records
@@ -98,6 +110,7 @@ export async function getUsers(page = 1, limit = 10, filters: UserFilters = {}) 
 }
 
 export async function createUser(formData: FormData) {
+    if (!(await checkAdminAccess())) return { error: 'Não autorizado' }
     const supabaseAdmin = createAdminClient()
 
     const email = formData.get('email') as string
@@ -157,6 +170,7 @@ export async function createUser(formData: FormData) {
 }
 
 export async function updateUser(formData: FormData) {
+    if (!(await checkAdminAccess())) return { error: 'Não autorizado' }
     const supabaseAdmin = createAdminClient()
 
     const id = formData.get('id') as string
@@ -193,6 +207,7 @@ export async function updateUser(formData: FormData) {
 }
 
 export async function deleteUser(id: string) {
+    if (!(await checkAdminAccess())) return { error: 'Não autorizado' }
     const supabaseAdmin = createAdminClient()
 
     // Delete from Auth (Should cascade to profiles if DB is set up right, but we can do both)
@@ -210,6 +225,7 @@ export async function deleteUser(id: string) {
 }
 
 export async function resetPassword(id: string, newPassword: string) {
+    if (!(await checkAdminAccess())) return { error: 'Não autorizado' }
     if (!newPassword || newPassword.length < 6) {
         return { error: 'A nova senha deve ter no mínimo 6 caracteres.' }
     }

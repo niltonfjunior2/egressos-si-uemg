@@ -289,3 +289,9 @@ if (error?.code === '23505') {
 **Contexto:** O componente `FeedSection` exibia Vagas, Mentores e o feed do Instagram. Durante o Modo de Vedação Eleitoral, precisávamos exibir as Vagas e Mentores, mas a exibição do Instagram violaria as leis eleitorais sobre publicidade institucional.
 **Solução:** Em vez de duplicar componentes ou criar um `FeedSectionElection`, foi adicionada a prop `hideInstagramFeed?: boolean` ao `FeedSectionProps`. Na renderização em `isElectionMode`, o componente é chamado com a prop `true`.
 **Prevenção:** Ao reaproveitar componentes "agregadores" em páginas com rigoroso compliance legal ou restrição de acesso, isole seções sensíveis (widgets de terceiros, redes sociais) atrás de flags condicionais de visibilidade explícitas.
+
+### [2026-05-23] - [SECURITY/NEXTJS] Broken Access Control em Server Actions
+
+**Contexto:** Funções administrativas em `app/admin/users/actions.ts` utilizavam `createAdminClient()` (bypassing RLS) assumindo que estavam protegidas pelas rotas. O Next.js expõe Server Actions como endpoints públicos que podem ser ativados diretamente por requisições HTTP (POST) independentemente da proteção de layout/middleware da página.
+**Solução:** Criação de um utilitário interno `checkAdminAccess()` e injeção do mesmo na primeira linha de toda Server Action, barrando imediatamente requisições que não possuam autenticação e a role RBAC apropriada (administrador ou coordenador). Adição de segredos (`?secret=`) em rotas de API destrutivas (Seed).
+**Prevenção:** O Middleware protege o roteamento de páginas (Views), mas NÃO protege as mutações isoladas (Server Actions). Toda Server Action sensível deve validar Autenticação e Autorização em seu escopo local antes de qualquer execução.

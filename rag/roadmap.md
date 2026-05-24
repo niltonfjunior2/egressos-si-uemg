@@ -141,6 +141,7 @@ Este documento guia o desenvolvimento incremental do sistema, unindo os requisit
 **Objetivo:** Polimento para produção.
 
 - [ ] **Testes & Segurança**
+  - [x] Auditoria de Segurança: Correção de Broken Access Control em Server Actions e Rota de Seed.
   - [ ] Verificar todas as políticas RLS (revisão final).
   - [ ] Otimizar imagens (Next/Image).
   - [ ] Documentação final (`README.md`).
@@ -167,3 +168,5 @@ Este documento guia o desenvolvimento incremental do sistema, unindo os requisit
 - **[L21]**: Tokenização de Texto Livre para Tag Cloud de Insights.
 - **[L22]**: Injeção Segura de Widgets de Terceiros e Lazy Load CND (Elfsight CDN).
 - **[L23]**: Rotas Órfãs em Redirecionamentos de Punição.
+- **[L24]**: Componentes em Modos de Restrição (Vedação Eleitoral).
+- **[L25]**: Broken Access Control em Server Actions.
