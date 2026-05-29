@@ -1,6 +1,7 @@
 'use client'
 
 import Link from "next/link"
+import Image from "next/image"
 import { usePathname } from "next/navigation"
 import { signout } from "@/app/auth/actions"
 import {
@@ -25,10 +26,12 @@ export function AdminSidebar({ role }: { role: string }) {
             <div className="p-6">
                 {/* Logo Area */}
                 <div className="flex flex-col items-center">
-                    <img
-                        alt="Logo UEMG"
-                        className="h-16 w-auto mx-auto object-contain"
+                    <Image
                         src="/logo_uemg_2.png"
+                        alt="Logo UEMG"
+                        width={128}
+                        height={64}
+                        className="h-16 w-auto mx-auto object-contain"
                     />
                     <p className="text-center text-xs mt-4 font-medium tracking-widest opacity-80 uppercase border-t border-white/20 pt-2 w-full">
                         Sistemas de Informação
@@ -131,12 +134,8 @@ export function AdminSidebar({ role }: { role: string }) {
                         isActive("/admin/profile") && "bg-white/10 border-l-4 border-white rounded-l-none"
                     )}
                 >
-                    <div className="mr-3 h-5 w-5 flex items-center justify-center">
-                        <img
-                            src="https://ui-avatars.com/api/?name=Admin&background=random"
-                            className="rounded-full h-5 w-5 opacity-80 group-hover:opacity-100" // Placeholder or actual avatar if available 
-                            alt="Avatar"
-                        />
+                    <div className="mr-3 h-5 w-5 flex items-center justify-center bg-white/20 rounded-full text-[10px] font-bold text-white opacity-80 group-hover:opacity-100">
+                        A
                     </div>
                     <span className="font-medium">Meu Perfil</span>
                 </Link>

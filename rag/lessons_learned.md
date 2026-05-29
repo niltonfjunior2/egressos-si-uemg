@@ -71,6 +71,12 @@ if (error?.code === '23505') {
 **Solução:** As policies RLS estavam `TO authenticated`. Para páginas públicas, é necessário criar policies específicas `TO public` para `SELECT`.
 **Prevenção:** Se o dado deve aparecer na Home (deslogado), o RLS deve permitir explicitamente o role `public` ou `anon`.
 
+### [2026-05-29] - [DB/SECURITY] Explicit GRANTs for Data API Access
+
+**Contexto:** O Supabase alterou o comportamento padrão da Data API (PostgREST) a partir de Maio/2026. Novas tabelas criadas no schema `public` não são mais expostas pela API se não tiverem declarações de `GRANT` explícitas, retornando erro `42501` do PostgREST.
+**Solução:** Adicionar comandos de `GRANT SELECT` para `anon`, e `GRANT SELECT, INSERT, UPDATE, DELETE` para `authenticated` e `service_role` (juntamente com `ENABLE ROW LEVEL SECURITY`) logo após a criação da tabela.
+**Prevenção:** Nunca criar tabelas no Supabase apenas com `CREATE TABLE`. Sempre inclua as cláusulas de ativação de RLS e os `GRANT`s explícitos para garantir que a aplicação React/Next.js consiga se comunicar com a tabela usando `supabase-js`.
+
 ---
 
 ## REGISTROS DE FRONTEND & NEXT.JS
@@ -295,3 +301,15 @@ if (error?.code === '23505') {
 **Contexto:** Funções administrativas em `app/admin/users/actions.ts` utilizavam `createAdminClient()` (bypassing RLS) assumindo que estavam protegidas pelas rotas. O Next.js expõe Server Actions como endpoints públicos que podem ser ativados diretamente por requisições HTTP (POST) independentemente da proteção de layout/middleware da página.
 **Solução:** Criação de um utilitário interno `checkAdminAccess()` e injeção do mesmo na primeira linha de toda Server Action, barrando imediatamente requisições que não possuam autenticação e a role RBAC apropriada (administrador ou coordenador). Adição de segredos (`?secret=`) em rotas de API destrutivas (Seed).
 **Prevenção:** O Middleware protege o roteamento de páginas (Views), mas NÃO protege as mutações isoladas (Server Actions). Toda Server Action sensível deve validar Autenticação e Autorização em seu escopo local antes de qualquer execução.
+
+### [2026-05-29] - [SECURITY/DB] Efeito 'Deny All' Silencioso do RLS no Schema SQL
+
+**Contexto:** Ao revisar o `schema.sql` (Fonte da Verdade), constatou-se que havia a cláusula `ENABLE ROW LEVEL SECURITY` acompanhada de `GRANT`s explícitos para acesso à API, mas as declarações de `CREATE POLICY` haviam sido omitidas do script. No PostgreSQL, ativar o RLS em uma tabela sem definir pelo menos uma política resulta num comportamento padrão de **"Deny All"** (bloqueio total de leitura/escrita).
+**Solução:** Todas as políticas fundamentais de CRUD que estão ativas no banco de produção foram recriadas e documentadas no final do `schema.sql`, respeitando limites rígidos (ex: LGPD em `profile_surveys`).
+**Prevenção:** Scripts de migração ou schemas de *Disaster Recovery* nunca devem ativar o RLS sem as suas respectivas *Policies*. Do contrário, o sistema recriado impedirá a leitura/escrita para todos os perfis `authenticated` imediatamente.
+
+### [2026-05-29] - [ARCH/DEBT] Attack Surface e Ghost Routes (Código Morto)
+
+**Contexto:** Após a migração do Feed (Fase 9), a tabela `feed_posts` foi excluída do banco de dados, porém, os antigos diretórios com Server Actions (`app/feed/actions.ts` e `app/admin/feed/actions.ts`) permaneceram intactos na base de código.
+**Solução:** Deleção completa desses diretórios. Embora eles não fossem renderizados em tela, o Next.js os compilava como "API Endpoints". 
+**Prevenção:** Em grandes refatorações ou *Deprecations*, não basta excluir componentes de tela (Views) ou tabelas do DB; as Server Actions (Controllers) ligadas às features extintas devem ser rigorosamente excluídas, não só para enxugar o bundle de compilação do Webpack, mas para zerar vetores potenciais de ataques onde um form malicioso poderia bater em rotas órfãs.

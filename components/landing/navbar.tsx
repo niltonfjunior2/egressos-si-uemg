@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { Menu, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
@@ -15,10 +16,12 @@ export function Navbar() {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between items-center h-16">
                     <Link href="/" className="flex items-center gap-3 hover:opacity-90 transition-opacity">
-                        <img
-                            alt="UEMG Carangola Logo"
-                            className="h-10 w-auto"
+                        <Image
                             src="/logo_uemg.png"
+                            alt="UEMG Carangola Logo"
+                            width={160}
+                            height={40}
+                            className="h-10 w-auto"
                         />
                         <div className="hidden md:block">
                             <span className="text-sm font-bold tracking-tight text-primary uppercase block leading-none">Sistemas de</span>

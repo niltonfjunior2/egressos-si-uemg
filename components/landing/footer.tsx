@@ -1,4 +1,5 @@
 import Link from "next/link"
+import Image from "next/image"
 import { Facebook, Instagram, Globe, MapPin, Phone, Mail } from "lucide-react"
 
 export function Footer() {
@@ -8,10 +9,12 @@ export function Footer() {
                 <div className="grid md:grid-cols-4 gap-12 mb-16">
                     {/* Brand Column */}
                     <div className="col-span-1 md:col-span-2 space-y-6">
-                        <img
-                            alt="Sistemas de Informação UEMG Carangola"
-                            className="h-10 w-auto"
+                        <Image
                             src="/logo_uemg.png"
+                            alt="Sistemas de Informação UEMG Carangola"
+                            width={160}
+                            height={40}
+                            className="h-10 w-auto"
                         />
                         <p className="text-slate-500 dark:text-slate-400 max-w-sm">
                             Plataforma oficial de acompanhamento de egressos do curso de Sistemas de Informação da Universidade do Estado de Minas Gerais - Unidade Carangola.

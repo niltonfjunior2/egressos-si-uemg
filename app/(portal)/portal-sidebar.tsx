@@ -1,6 +1,7 @@
 'use client'
 
 import Link from "next/link"
+import Image from "next/image"
 import { usePathname } from "next/navigation"
 import { signout } from "@/app/auth/actions"
 import {
@@ -24,10 +25,12 @@ export function PortalSidebar({ user }: { user: any }) {
             <div className="p-6">
                 {/* Logo Area */}
                 <div className="flex flex-col items-center">
-                    <img
-                        alt="Logo UEMG"
-                        className="h-16 w-auto mx-auto object-contain bg-white rounded-full p-1"
+                    <Image
                         src="/logo_uemg_2.png"
+                        alt="Logo UEMG"
+                        width={128}
+                        height={64}
+                        className="h-16 w-auto mx-auto object-contain bg-white rounded-full p-1"
                     />
                     <p className="text-center text-xs mt-4 font-medium tracking-widest opacity-80 uppercase border-t border-white/20 pt-2 w-full">
                         Sistemas de Informação

@@ -64,13 +64,9 @@ export default async function PortalLayout({
                             </div>
                             {/* Avatar Fallback */}
                             <div className="h-10 w-10 rounded-full border-2 border-primary shadow-sm bg-gray-200 overflow-hidden">
-                                {profile?.avatar_url ? (
-                                    <img src={profile.avatar_url} alt="Avatar" className="h-full w-full object-cover" />
-                                ) : (
-                                    <div className="h-full w-full flex items-center justify-center text-gray-500 font-bold">
-                                        {(profile?.social_name || profile?.full_name || user.email || 'U').charAt(0).toUpperCase()}
-                                    </div>
-                                )}
+                                <div className="h-full w-full flex items-center justify-center text-gray-500 font-bold">
+                                    {(profile?.social_name || profile?.full_name || user.email || 'U').charAt(0).toUpperCase()}
+                                </div>
                             </div>
                         </div>
                     </div>

@@ -1,7 +1,7 @@
 # ROADMAP.md: EGRESSOS SI UEMG - Sistema de Acompanhamento de Egressos (UEMG)
 >
 > **Versão:** 3.2 (Integrado)
-> **Status:** Em Execução (Fase 9)
+> **Status:** Concluído (Fase Final)
 > **Baseado em:** `PROJECT_DNA.md` (v2.0) e `lessons_learned.md`
 
 Este documento guia o desenvolvimento incremental do sistema, unindo os requisitos regulatórios (CEE/MG) com os requisitos sociais (Vagas/Feed).
@@ -136,15 +136,15 @@ Este documento guia o desenvolvimento incremental do sistema, unindo os requisit
 
 ---
 
-## FASE 5: FINALIZAÇÃO (Pendente)
+## FASE 5: FINALIZAÇÃO [CONCLUÍDO]
 
 **Objetivo:** Polimento para produção.
 
-- [ ] **Testes & Segurança**
+- [x] **Testes & Segurança**
   - [x] Auditoria de Segurança: Correção de Broken Access Control em Server Actions e Rota de Seed.
-  - [ ] Verificar todas as políticas RLS (revisão final).
-  - [ ] Otimizar imagens (Next/Image).
-  - [ ] Documentação final (`README.md`).
+  - [x] Verificar todas as políticas RLS (revisão final).
+  - [x] Otimizar imagens (Next/Image).
+  - [x] Documentação final (`README.md`).
 - [x] **Ajustes de Compliance Legal**
   - [x] Ocultação seletiva de widgets externos (Instagram) no Modo de Vedação Eleitoral.
   - [x] Exibição contínua de utilidade pública (Vagas e Mentores) durante vedação.

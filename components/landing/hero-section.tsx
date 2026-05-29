@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import Image from "next/image"
 import { UserPlus, Briefcase } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
@@ -54,10 +55,13 @@ export function HeroSection() {
                             <div className="flex -space-x-3">
                                 {[1, 2, 3].map((i) => (
                                     <div key={i} className="w-10 h-10 rounded-full border-2 border-slate-900 bg-slate-700 flex items-center justify-center overflow-hidden">
-                                        <img
-                                            alt={`Alumni ${i}`}
+                                        <Image
                                             src={`https://ui-avatars.com/api/?name=User+${i}&background=random`}
+                                            alt={`Alumni ${i}`}
+                                            width={40}
+                                            height={40}
                                             className="w-full h-full object-cover"
+                                            unoptimized
                                         />
                                     </div>
                                 ))}
@@ -69,10 +73,13 @@ export function HeroSection() {
                     {/* Visual Content */}
                     <div className="relative flex justify-center lg:justify-end hidden md:flex">
                         <div className="relative z-10 w-full max-w-lg lg:max-w-none">
-                            <img
-                                alt="UEMG Carangola"
-                                className="w-full h-auto drop-shadow-[0_0_50px_rgba(48,91,125,0.4)] rounded-2xl"
+                            <Image
                                 src="/uemg-hero.png"
+                                alt="UEMG Carangola"
+                                width={800}
+                                height={600}
+                                className="w-full h-auto drop-shadow-[0_0_50px_rgba(48,91,125,0.4)] rounded-2xl"
+                                priority
                             />
                             <div className="absolute inset-0 bg-blue-500/20 blur-[100px] -z-10 rounded-full"></div>
                         </div>
