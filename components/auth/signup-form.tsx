@@ -11,6 +11,7 @@ import {
     FormItem,
     FormLabel,
     FormMessage,
+    FormDescription,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { signup } from "@/app/auth/actions"
@@ -111,6 +112,9 @@ export function SignupForm() {
                             <FormControl>
                                 <Input placeholder="seu.email@gmail.com" {...field} />
                             </FormControl>
+                            <FormDescription>
+                                Forneça um e-mail pessoal (Gmail, Outlook, etc). Devido a restrições do servidor da UEMG, este e-mail será necessário caso você precise recuperar a sua senha no futuro.
+                            </FormDescription>
                             <FormMessage />
                         </FormItem>
                     )}

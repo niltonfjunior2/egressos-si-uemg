@@ -102,18 +102,22 @@ export function UserFormDialog({ userToEdit, triggerArg }: { userToEdit?: any, t
                             required
                         />
                     </div>
-                    <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="alternativeEmail" className="text-right">
+                    <div className="grid grid-cols-4 items-start gap-4">
+                        <Label htmlFor="alternativeEmail" className="text-right mt-3">
                             Email Alternativo
                         </Label>
-                        <Input
-                            id="alternativeEmail"
-                            name="alternativeEmail"
-                            type="email"
-                            defaultValue={userToEdit?.alternative_email}
-                            className="col-span-3"
-                            placeholder="Opcional"
-                        />
+                        <div className="col-span-3 space-y-1">
+                            <Input
+                                id="alternativeEmail"
+                                name="alternativeEmail"
+                                type="email"
+                                defaultValue={userToEdit?.alternative_email}
+                                placeholder="Opcional"
+                            />
+                            <p className="text-xs text-muted-foreground">
+                                Fundamental para que o usuário possa recuperar a senha caso seu provedor principal bloqueie e-mails institucionais (ex: @uemg.br).
+                            </p>
+                        </div>
                     </div>
 
                     {!userToEdit && (
