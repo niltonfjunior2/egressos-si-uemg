@@ -96,7 +96,7 @@ export function getPasswordRecoveryEmailHtml(actionLink: string): string {
     </div>
     <div class="content">
       <p>Olá,</p>
-      <p>Recebemos uma solicitação para redefinir a senha da sua conta. Se você fez essa solicitação, clique no botão abaixo para escolher uma nova senha.</p>
+      <p>Recebemos uma solicitação para redefinir a senha da sua conta no Portal de Egressos do Curso de Sistemas de Informação da UEMG Carangola. Se você fez essa solicitação, clique no botão abaixo para escolher uma nova senha.</p>
       
       <div class="button-container">
         <a href="${actionLink}" class="button">Redefinir Minha Senha</a>
