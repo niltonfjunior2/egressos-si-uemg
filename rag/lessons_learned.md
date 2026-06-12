@@ -313,3 +313,21 @@ if (error?.code === '23505') {
 **Contexto:** Após a migração do Feed (Fase 9), a tabela `feed_posts` foi excluída do banco de dados, porém, os antigos diretórios com Server Actions (`app/feed/actions.ts` e `app/admin/feed/actions.ts`) permaneceram intactos na base de código.
 **Solução:** Deleção completa desses diretórios. Embora eles não fossem renderizados em tela, o Next.js os compilava como "API Endpoints". 
 **Prevenção:** Em grandes refatorações ou *Deprecations*, não basta excluir componentes de tela (Views) ou tabelas do DB; as Server Actions (Controllers) ligadas às features extintas devem ser rigorosamente excluídas, não só para enxugar o bundle de compilação do Webpack, mas para zerar vetores potenciais de ataques onde um form malicioso poderia bater em rotas órfãs.
+
+### [2026-06-12] - [AUTH/EMAIL] Bypass do Motor de E-mail Nativo do Supabase
+
+**Contexto:** Necessidade de usar provedores robustos (Brevo) com templates HTML ricos para recuperação de senha, substituindo os templates textuais limitados do Supabase.
+**Solução:** Não usar `resetPasswordForEmail`. Em vez disso, usar `supabaseAdmin.auth.admin.generateLink({ type: 'recovery', email })` para gerar o token e a URL nos bastidores, e então disparar o e-mail manualmente utilizando a SDK do Brevo (`@getbrevo/brevo`).
+**Prevenção:** Em integrações profissionais, desacople a geração de tokens de segurança (Supabase) da entrega da mensagem (Brevo, Resend, SendGrid).
+
+### [2026-06-12] - [UX/SECURITY] Desacoplamento do Identificador de Login vs Destino de E-mail
+
+**Contexto:** O servidor institucional da UEMG bloqueia recebimento de e-mails externos, impedindo alunos de receberem o link de recuperação de senha no e-mail principal do cadastro.
+**Solução:** Adição de um `alternative_email` na tabela `profiles`. Na recuperação, o sistema busca o usuário por qualquer um dos dois e-mails, gera o link de recuperação baseado no `email` (login institucional obrigatório pelo Supabase Auth), mas envia o link via SMTP para o `alternative_email`.
+**Prevenção:** Sistemas educacionais e corporativos frequentemente sofrem bloqueios rígidos de firewall/spam. Sempre preveja um e-mail pessoal alternativo para rotas críticas de recuperação de acesso.
+
+### [2026-06-12] - [ADMIN/DB] Sincronização de E-mail de Login (Auth) e Perfil (Data)
+
+**Contexto:** Permitir que o Administrador altere o e-mail de um usuário pelo painel requeria atualizar não apenas a tabela pública, mas o registro real de autenticação.
+**Solução:** Usar `supabaseAdmin.auth.admin.updateUserById(id, { email: novoEmail })`. O Supabase Auth lida com as validações de unicidade automaticamente. Em seguida, aplicar o `UPDATE` na tabela `profiles`.
+**Prevenção:** Alterações no e-mail de login feitas por Admins precisam sempre atualizar a tabela `auth.users` diretamente via Service Role (Admin Client), não bastando atualizar os registros visuais do schema `public`.

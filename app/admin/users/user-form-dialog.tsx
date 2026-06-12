@@ -99,8 +99,20 @@ export function UserFormDialog({ userToEdit, triggerArg }: { userToEdit?: any, t
                             type="email"
                             defaultValue={userToEdit?.email}
                             className="col-span-3"
-                            disabled={!!userToEdit} // Disable email edit for now to simplify (requires auth admin API careful handling)
                             required
+                        />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="alternativeEmail" className="text-right">
+                            Email Alternativo
+                        </Label>
+                        <Input
+                            id="alternativeEmail"
+                            name="alternativeEmail"
+                            type="email"
+                            defaultValue={userToEdit?.alternative_email}
+                            className="col-span-3"
+                            placeholder="Opcional"
                         />
                     </div>
 

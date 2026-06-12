@@ -33,6 +33,7 @@ export function SignupForm() {
         defaultValues: {
             fullName: "",
             email: "",
+            alternativeEmail: "",
             password: "",
             confirmPassword: "",
             role: undefined,
@@ -93,9 +94,22 @@ export function SignupForm() {
                     name="email"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Email</FormLabel>
+                            <FormLabel>Email Institucional</FormLabel>
                             <FormControl>
-                                <Input placeholder="seu@email.com" {...field} />
+                                <Input placeholder="seu.nome@uemg.br" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                <FormField
+                    control={form.control}
+                    name="alternativeEmail"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Email Alternativo (Pessoal)</FormLabel>
+                            <FormControl>
+                                <Input placeholder="seu.email@gmail.com" {...field} />
                             </FormControl>
                             <FormMessage />
                         </FormItem>

@@ -6,6 +6,7 @@ import { z } from 'zod'
 
 const userSchema = z.object({
     email: z.string().email("Email inválido"),
+    alternativeEmail: z.string().email("Email alternativo inválido").optional().or(z.literal("")),
     fullName: z.string().min(3, "Nome completo é obrigatório"),
     role: z.enum(['aluno', 'professor', 'coordenador', 'administrador', 'egresso']),
     password: z.string().min(6, "A senha deve ter no mínimo 6 caracteres").optional(),
@@ -13,6 +14,8 @@ const userSchema = z.object({
 
 const updateUserSchema = z.object({
     id: z.string(),
+    email: z.string().email("Email inválido"),
+    alternativeEmail: z.string().email("Email alternativo inválido").optional().or(z.literal("")),
     fullName: z.string().min(3, "Nome completo é obrigatório"),
     role: z.enum(['aluno', 'professor', 'coordenador', 'administrador', 'egresso']),
 })
@@ -114,12 +117,13 @@ export async function createUser(formData: FormData) {
     const supabaseAdmin = createAdminClient()
 
     const email = formData.get('email') as string
+    const alternativeEmail = formData.get('alternativeEmail') as string || null
     const fullName = formData.get('fullName') as string
     const role = formData.get('role') as any
     const password = formData.get('password') as string
 
     // Validate
-    const validated = userSchema.safeParse({ email, fullName, role, password })
+    const validated = userSchema.safeParse({ email, alternativeEmail, fullName, role, password })
 
     if (!validated.success) {
         return { error: validated.error.issues[0].message }
@@ -153,6 +157,7 @@ export async function createUser(formData: FormData) {
         .upsert({
             id: authData.user.id,
             email,
+            alternative_email: alternativeEmail,
             full_name: fullName,
             role,
             is_open_to_mentoring: false // Default
@@ -174,32 +179,39 @@ export async function updateUser(formData: FormData) {
     const supabaseAdmin = createAdminClient()
 
     const id = formData.get('id') as string
+    const email = formData.get('email') as string
+    const alternativeEmail = formData.get('alternativeEmail') as string || null
     const fullName = formData.get('fullName') as string
     const role = formData.get('role') as any
 
-    const validated = updateUserSchema.safeParse({ id, fullName, role })
+    const validated = updateUserSchema.safeParse({ id, email, alternativeEmail, fullName, role })
 
     if (!validated.success) {
         return { error: validated.error.issues[0].message }
     }
 
+    // Update Auth Metadata (Best effort for full_name, critical for email)
+    try {
+        const { error: authError } = await supabaseAdmin.auth.admin.updateUserById(id, {
+            email: email,
+            user_metadata: { full_name: fullName }
+        })
+        if (authError) {
+            // Se o e-mail já existir em outra conta, o Auth irá barrar.
+            return { error: 'Erro ao atualizar login: ' + authError.message }
+        }
+    } catch (e) {
+        console.error('Error updating auth metadata:', e)
+    }
+
     // Update Profile
     const { error: profileError } = await supabaseAdmin
         .from('profiles')
-        .update({ full_name: fullName, role })
+        .update({ email, alternative_email: alternativeEmail, full_name: fullName, role })
         .eq('id', id)
 
     if (profileError) {
         return { error: 'Erro ao atualizar perfil: ' + profileError.message }
-    }
-
-    // Update Auth Metadata (Best effort)
-    try {
-        await supabaseAdmin.auth.admin.updateUserById(id, {
-            user_metadata: { full_name: fullName }
-        })
-    } catch (e) {
-        console.error('Error updating auth metadata:', e)
     }
 
     revalidatePath('/admin/users')

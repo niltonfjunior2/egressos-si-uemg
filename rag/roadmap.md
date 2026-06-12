@@ -151,6 +151,22 @@ Este documento guia o desenvolvimento incremental do sistema, unindo os requisit
 
 ---
 
+## FASE 10: INTEGRAÇÃO DE E-MAIL & RECUPERAÇÃO AVANÇADA [CONCLUÍDO]
+
+**Objetivo:** Contornar bloqueios institucionais de e-mail e integrar envio de mensagens HTML profissionais pelo Brevo.
+
+- [x] **Integração Brevo SDK:**
+  - [x] Bypass completo do sistema de e-mail do Supabase.
+  - [x] Templates em HTML dinâmico com link único para recuperação de senha.
+- [x] **Gestão de E-mail Alternativo:**
+  - [x] Cadastro obrigatório de e-mail alternativo para mitigar firewall `@uemg.br`.
+  - [x] Lógica de busca e envio cruzado no painel de recuperação.
+- [x] **Painel Administrativo:**
+  - [x] Permissão para administradores editarem o login institucional do usuário diretamente pelo painel (Sincronização Auth/Database).
+  - [x] Edição de e-mail alternativo pelo admin.
+
+---
+
 ### LEGENDAS DE LIÇÕES APRENDIDAS (L)
 
 *Consultar `lessons_learned.md` para detalhes técnicos.*
@@ -170,3 +186,6 @@ Este documento guia o desenvolvimento incremental do sistema, unindo os requisit
 - **[L23]**: Rotas Órfãs em Redirecionamentos de Punição.
 - **[L24]**: Componentes em Modos de Restrição (Vedação Eleitoral).
 - **[L25]**: Broken Access Control em Server Actions.
+- **[L26]**: Bypass do Motor de E-mail Nativo do Supabase.
+- **[L27]**: Desacoplamento do Identificador de Login vs Destino de E-mail.
+- **[L28]**: Sincronização de E-mail de Login (Auth) e Perfil (Data).

@@ -72,6 +72,7 @@ export async function signup(formData: SignupFormData) {
             id: data.user.id,
             full_name: formData.fullName,
             email: formData.email,
+            alternative_email: formData.alternativeEmail,
             role: formData.role, // User selected role
         })
 
@@ -104,8 +105,22 @@ import { sendEmail } from '@/lib/brevo'
 import { getPasswordRecoveryEmailHtml } from '@/lib/email-templates'
 
 export async function recoverPassword(formData: FormData) {
-    const email = formData.get('email') as string
+    const inputEmail = formData.get('email') as string
     const adminDb = createAdminClient()
+
+    // Buscar perfil do usuário (suporta entrada tanto do email institucional quanto do alternativo)
+    const { data: profile } = await adminDb
+        .from('profiles')
+        .select('email, alternative_email')
+        .or(`email.eq.${inputEmail},alternative_email.eq.${inputEmail}`)
+        .single()
+
+    // Por questões de segurança, se o usuário não for encontrado, ainda retornamos sucesso 
+    // para não vazar a existência de e-mails, mas não fazemos nada.
+    if (!profile) return { success: true }
+
+    const authEmail = profile.email || inputEmail
+    const destinationEmail = profile.alternative_email || profile.email || inputEmail
 
     // O link apontará diretamente para a página /reset, sem passar por callbacks de API
     const baseUrl = await getServerBaseUrl()
@@ -113,7 +128,7 @@ export async function recoverPassword(formData: FormData) {
 
     const { data, error } = await adminDb.auth.admin.generateLink({
         type: 'recovery',
-        email,
+        email: authEmail,
         options: {
             redirectTo: callbackUrl
         }
@@ -121,10 +136,10 @@ export async function recoverPassword(formData: FormData) {
 
     if (error) return { error: error.message }
 
-    // Enviar o link de recuperação via Brevo
+    // Enviar o link de recuperação via Brevo para o email destino (preferencialmente o alternativo)
     try {
         await sendEmail({
-            toEmail: email,
+            toEmail: destinationEmail,
             subject: 'Recuperação de Senha - Sistema UEMG',
             htmlContent: getPasswordRecoveryEmailHtml(data.properties.action_link)
         })

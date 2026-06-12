@@ -6,7 +6,8 @@ export const loginSchema = z.object({
 })
 
 export const signupSchema = z.object({
-    email: z.string().email("Email inválido"),
+    email: z.string().email("Email institucional inválido"),
+    alternativeEmail: z.string().email("Email alternativo inválido"),
     fullName: z.string().min(2, "Nome deve ter no mínimo 2 caracteres"),
     role: z.enum(["aluno", "egresso"] as const, {
         message: "Selecione uma opção",
