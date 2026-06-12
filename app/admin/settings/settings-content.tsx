@@ -1,11 +1,35 @@
 "use client"
 
+import { useState, useTransition } from "react"
 import { Switch } from "@/components/ui/switch"
-import { useAppStore } from "@/utils/store/app-store"
 import { ShieldAlert } from "lucide-react"
+import { toggleGlobalElectionMode } from "./actions"
+// If you have a toast hook, it can be imported here, e.g. import { useToast } from "@/components/ui/use-toast" or similar.
 
-export function SettingsContent() {
-    const { isElectionMode, toggleElectionMode } = useAppStore()
+interface SettingsContentProps {
+    initialElectionMode: boolean
+}
+
+export function SettingsContent({ initialElectionMode }: SettingsContentProps) {
+    const [isPending, startTransition] = useTransition()
+    const [isElectionMode, setIsElectionMode] = useState(initialElectionMode)
+
+    const handleToggle = () => {
+        const nextState = !isElectionMode
+        // Optimistic update
+        setIsElectionMode(nextState)
+        
+        startTransition(async () => {
+            try {
+                await toggleGlobalElectionMode(nextState)
+            } catch (error) {
+                // Revert if error
+                setIsElectionMode(!nextState)
+                console.error(error)
+                alert("Falha ao alterar o modo.")
+            }
+        })
+    }
 
     return (
         <div className="space-y-6">
@@ -25,7 +49,8 @@ export function SettingsContent() {
                             <div className="ml-4">
                                 <Switch 
                                     checked={isElectionMode}
-                                    onCheckedChange={toggleElectionMode}
+                                    onCheckedChange={handleToggle}
+                                    disabled={isPending}
                                     className="data-[state=checked]:bg-red-600"
                                 />
                             </div>

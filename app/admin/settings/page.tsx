@@ -21,6 +21,15 @@ export default async function SettingsPage() {
         redirect('/admin')
     }
 
+    // Fetch global settings
+    const { data: globalSettings } = await supabase
+        .from('global_settings')
+        .select('is_election_mode')
+        .eq('id', 1)
+        .single()
+
+    const isElectionMode = globalSettings?.is_election_mode ?? false
+
     return (
         <div className="max-w-4xl mx-auto py-8">
             <div className="mb-8">
@@ -28,7 +37,7 @@ export default async function SettingsPage() {
                 <p className="text-slate-600 dark:text-slate-400 mt-2">Gerencie as configurações globais da plataforma.</p>
             </div>
             
-            <SettingsContent />
+            <SettingsContent initialElectionMode={isElectionMode} />
         </div>
     )
 }

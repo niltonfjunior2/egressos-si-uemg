@@ -100,6 +100,8 @@ export async function signout() {
 // Imports for recovery
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getServerBaseUrl } from '@/utils/url'
+import { sendEmail } from '@/lib/brevo'
+import { getPasswordRecoveryEmailHtml } from '@/lib/email-templates'
 
 export async function recoverPassword(formData: FormData) {
     const email = formData.get('email') as string
@@ -109,10 +111,27 @@ export async function recoverPassword(formData: FormData) {
     const baseUrl = await getServerBaseUrl()
     const callbackUrl = `${baseUrl}reset`
 
-    const { error } = await adminDb.auth.resetPasswordForEmail(email, {
-        redirectTo: callbackUrl
+    const { data, error } = await adminDb.auth.admin.generateLink({
+        type: 'recovery',
+        email,
+        options: {
+            redirectTo: callbackUrl
+        }
     })
 
     if (error) return { error: error.message }
+
+    // Enviar o link de recuperação via Brevo
+    try {
+        await sendEmail({
+            toEmail: email,
+            subject: 'Recuperação de Senha - Sistema UEMG',
+            htmlContent: getPasswordRecoveryEmailHtml(data.properties.action_link)
+        })
+    } catch (emailError) {
+        console.error("Erro ao enviar e-mail de recuperação:", emailError);
+        return { error: 'Falha ao enviar e-mail de recuperação. Tente novamente mais tarde.' }
+    }
+
     return { success: true }
 }

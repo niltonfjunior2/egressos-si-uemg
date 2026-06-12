@@ -34,5 +34,14 @@ export default async function Home() {
     .order('created_at', { ascending: false })
     .limit(6)
 
-  return <PageContent mentors={mentors || []} jobs={jobs || []} />
+  // Fetch election mode
+  const { data: globalSettings } = await supabase
+    .from('global_settings')
+    .select('is_election_mode')
+    .eq('id', 1)
+    .single()
+
+  const isElectionMode = globalSettings?.is_election_mode ?? false
+
+  return <PageContent mentors={mentors || []} jobs={jobs || []} isElectionMode={isElectionMode} />
 }
