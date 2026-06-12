@@ -235,6 +235,14 @@ export default async function UsersPage({
                                         </TableCell>
                                         <TableCell className="text-right">
                                             <div className="flex justify-end gap-2">
+                                                <UserFormDialog 
+                                                    userToEdit={user} 
+                                                    triggerArg={
+                                                        <Button variant="outline" size="sm" className="h-8 text-xs border-amber-600 text-amber-600 hover:bg-amber-50">
+                                                            Editar
+                                                        </Button>
+                                                    } 
+                                                />
                                                 <Link href={`/admin/users/${user.id}`}>
                                                     <Button variant="outline" size="sm" className="h-8 text-xs border-blue-600 text-blue-600 hover:bg-blue-50">
                                                         Ver Detalhes

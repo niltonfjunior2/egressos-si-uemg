@@ -4,8 +4,9 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { ArrowLeft, User, Briefcase, GraduationCap, MapPin, Linkedin, Github, Globe, Calendar, Mail } from "lucide-react"
+import { ArrowLeft, User, Briefcase, GraduationCap, MapPin, Linkedin, Github, Globe, Calendar, Mail, Pencil } from "lucide-react"
 import Link from "next/link"
+import { UserFormDialog } from "../user-form-dialog"
 
 export default async function UserDetailsPage({ params }: { params: Promise<{ id: string }> }) {
     // Client for Auth Context (Uses Cookies)
@@ -106,10 +107,20 @@ export default async function UserDetailsPage({ params }: { params: Promise<{ id
                         <ArrowLeft className="h-5 w-5" />
                     </Button>
                 </Link>
-                <div>
+                <div className="flex-1">
                     <h1 className="text-2xl font-bold">{profile.full_name}</h1>
                     {profile.social_name && <p className="text-sm text-gray-500">({profile.social_name})</p>}
                     <p className="text-gray-500 text-sm">Ficha do Egresso • Cadastrado em {new Date(profile.created_at).toLocaleDateString()}</p>
+                </div>
+                <div>
+                    <UserFormDialog 
+                        userToEdit={profile} 
+                        triggerArg={
+                            <Button variant="outline" className="border-amber-600 text-amber-600 hover:bg-amber-50">
+                                <Pencil className="mr-2 h-4 w-4" /> Editar
+                            </Button>
+                        } 
+                    />
                 </div>
             </div>
 
