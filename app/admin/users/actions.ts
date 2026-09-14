@@ -1,6 +1,7 @@
 'use server'
 
-import { createClient, createAdminClient } from '@/utils/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
+import { checkAdminAccess } from '@/lib/auth-guard'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 
@@ -28,14 +29,6 @@ interface UserFilters {
     mentoring?: string // 'true' | 'false'
 }
 
-async function checkAdminAccess() {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return false
-
-    const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-    return profile && ['administrador', 'coordenador'].includes(profile.role)
-}
 
 export async function getUsers(page = 1, limit = 10, filters: UserFilters = {}) {
     if (!(await checkAdminAccess())) {

@@ -331,3 +331,21 @@ if (error?.code === '23505') {
 **Contexto:** Permitir que o Administrador altere o e-mail de um usuário pelo painel requeria atualizar não apenas a tabela pública, mas o registro real de autenticação.
 **Solução:** Usar `supabaseAdmin.auth.admin.updateUserById(id, { email: novoEmail })`. O Supabase Auth lida com as validações de unicidade automaticamente. Em seguida, aplicar o `UPDATE` na tabela `profiles`.
 **Prevenção:** Alterações no e-mail de login feitas por Admins precisam sempre atualizar a tabela `auth.users` diretamente via Service Role (Admin Client), não bastando atualizar os registros visuais do schema `public`.
+
+### [2026-06-13] - [SECURITY/RBAC] Bloqueio de Escalação de Privilégios em Edição de Perfil
+
+**Contexto:** O formulário de edição de perfil no portal (`updateProfile`) permitia envio do campo `role` pelo payload do cliente. Um usuário malicioso autenticado como aluno podia enviar `{ role: 'administrador' }` e obter acesso root.
+**Solução:** Restringir o enum do `profileSchema` às roles discentes (`aluno`, `egresso`) e validar no banco que a única transição autorizada pelo próprio usuário é de `aluno` para `egresso`. Qualquer outro valor é ignorado e mantido no papel anterior.
+**Prevenção:** Em rotas de autosserviço (Self-Service Profile Edit), nunca confiar em campos de permissão vindos do cliente. Manter controle estrito de RBAC onde elevação de cargos só pode ocorrer via painel de administração.
+
+### [2026-06-13] - [SECURITY/ACTIONS] Proteção RBAC Mandatória em Relatórios de Censo e PII
+
+**Contexto:** A Server Action `getCensusReportData` não possuía verificação de sessão ativa ou role RBAC, permitindo que qualquer requisição anônima direta via RPC extraísse nomes completos, e-mails institucionais, matrículas e status acadêmicos (violação da LGPD).
+**Solução:** Injeção do guard `requireAdminOrCoord()` no topo de todas as Server Actions de relatórios analíticos, retornando erro padronizado para acessos não autorizados.
+**Prevenção:** Server Actions são endpoints HTTP públicos expostos pelo Next.js. O Middleware protege apenas o acesso à View (página), portanto toda Server Action analítica ou mutante deve validar autenticação e autorização explicitamente no escopo da função.
+
+### [2026-06-13] - [ARCH/DRY] Centralização do Auth Guard e Unificação do Admin Client
+
+**Contexto:** Verificações de perfil e permissões de administrador/coordenador estavam duplicadas em vários arquivos (`users/actions.ts`, `settings/actions.ts`, `jobs/actions.ts`), gerando queries redundantes e divergência na inicialização do `createAdminClient` (usando `@supabase/ssr` com cookies mockados vs `@supabase/supabase-js`).
+**Solução:** Criação de `@/lib/auth-guard.ts` fornecendo `getAuthContext`, `checkAdminAccess` e `requireAdminOrCoord`, e unificação da instanciação do cliente com Service Role em `@/lib/supabase/admin.ts`.
+**Prevenção:** Regras de autenticação, checagem de perfil e clientes de backend com privilégios elevados devem ter uma única Fonte da Verdade na base de código.

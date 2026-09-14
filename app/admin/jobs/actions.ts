@@ -1,6 +1,7 @@
 'use server'
 
-import { createClient, createAdminClient } from '@/utils/supabase/server'
+import { getAuthContext, isAdminOrCoord } from '@/lib/auth-guard'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 
@@ -9,7 +10,7 @@ const jobSchema = z.object({
     title: z.string().min(3, "Título é obrigatório"),
     description: z.string().min(10, "Descrição deve ter no mínimo 10 caracteres"),
     company: z.string().min(2, "Empresa é obrigatória"),
-    location: z.string().optional(),
+    location: z.string().optional().or(z.literal('')),
     type: z.enum(['estagio', 'emprego', 'trainee', 'monitoria', 'freelance', 'projeto_pesquisa', 'pj']),
     work_mode: z.enum(['presencial', 'remoto', 'hibrido']),
     link_url: z.string().url("URL inválida").optional().or(z.literal('')),
@@ -23,14 +24,11 @@ const updateJobSchema = jobSchema.extend({
 })
 
 export async function getJobs(page = 1, limit = 10, search = '') {
-    const supabase = await createClient()
+    const authCtx = await getAuthContext()
+    if (!authCtx) return { jobs: [], count: 0, error: 'Não autenticado' }
 
-    // Get current user to check role
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return { jobs: [], count: 0, error: 'Não autenticado' }
-
-    const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-    const isAdminOrCoord = profile && ['administrador', 'coordenador'].includes(profile.role)
+    const { user, profile, supabase } = authCtx
+    const isPrivileged = isAdminOrCoord(profile.role)
 
     let query = supabase
         .from('opportunities')
@@ -39,7 +37,7 @@ export async function getJobs(page = 1, limit = 10, search = '') {
         .range((page - 1) * limit, page * limit - 1)
 
     // RBAC: If not admin/coord, show only own jobs
-    if (!isAdminOrCoord) {
+    if (!isPrivileged) {
         query = query.eq('author_id', user.id)
     }
 
@@ -54,29 +52,17 @@ export async function getJobs(page = 1, limit = 10, search = '') {
         return { jobs: [], count: 0, error: 'Erro ao buscar vagas.' }
     }
 
-    return { jobs, count, userRole: profile?.role } // Return role to help UI decision making if needed
+    return { jobs, count, userRole: profile.role }
 }
 
 export async function createJob(formData: FormData) {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const authCtx = await getAuthContext()
+    if (!authCtx) return { error: 'Usuário não autenticado' }
 
-    if (!user) return { error: 'Usuário não autenticado' }
-
-    const rawData = {
-        title: formData.get('title'),
-        description: formData.get('description'),
-        company: formData.get('company'),
-        location: formData.get('location'),
-        type: formData.get('type'),
-        work_mode: formData.get('work_mode'),
-        link_url: formData.get('link_url'),
-        contact_info: formData.get('contact_info'),
-        expires_at: formData.get('expires_at'),
-    }
+    const { user, supabase } = authCtx
+    const rawData = Object.fromEntries(formData.entries())
 
     const validated = jobSchema.safeParse(rawData)
-
     if (!validated.success) {
         return { error: validated.error.issues[0].message }
     }
@@ -98,47 +84,34 @@ export async function createJob(formData: FormData) {
 }
 
 export async function updateJob(formData: FormData) {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const authCtx = await getAuthContext()
+    if (!authCtx) return { error: 'Usuário não autenticado' }
 
-    if (!user) return { error: 'Usuário não autenticado' }
+    const { user, profile, supabase } = authCtx
+    const isPrivileged = isAdminOrCoord(profile.role)
 
-    const rawData = {
-        id: formData.get('id'),
-        title: formData.get('title'),
-        description: formData.get('description'),
-        company: formData.get('company'),
-        location: formData.get('location'),
-        type: formData.get('type'),
-        work_mode: formData.get('work_mode'),
-        link_url: formData.get('link_url'),
-        contact_info: formData.get('contact_info'),
-        expires_at: formData.get('expires_at'),
-        status: formData.get('status'),
-    }
-
+    const rawData = Object.fromEntries(formData.entries())
     const validated = updateJobSchema.safeParse(rawData)
 
     if (!validated.success) {
         return { error: validated.error.issues[0].message }
     }
 
-    // RBAC Check for Update
-    // Fetch job to check author
-    const { data: existingJob } = await supabase.from('opportunities').select('author_id').eq('id', validated.data.id).single()
-    const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-
-    const isAdminOrCoord = profile && ['administrador', 'coordenador'].includes(profile.role)
+    // RBAC Check for Update: Fetch job to check author
+    const { data: existingJob } = await supabase
+        .from('opportunities')
+        .select('author_id')
+        .eq('id', validated.data.id)
+        .single()
 
     if (!existingJob) return { error: 'Vaga não encontrada' }
 
-    if (!isAdminOrCoord && existingJob.author_id !== user.id) {
+    if (!isPrivileged && existingJob.author_id !== user.id) {
         return { error: 'Você não tem permissão para editar esta vaga.' }
     }
 
-    // Use admin client if the user is admin/coord to bypass RLS "silent block" on update
-    // Default RLS might block updates on records they don't own, even if their UI allows it
-    const db = isAdminOrCoord ? createAdminClient() : supabase;
+    // Use admin client if the user is admin/coord to bypass RLS restrictions
+    const db = isPrivileged ? createAdminClient() : supabase
 
     const { data: updatedJob, error } = await db
         .from('opportunities')
@@ -152,7 +125,7 @@ export async function updateJob(formData: FormData) {
             link_url: validated.data.link_url,
             contact_info: validated.data.contact_info,
             expires_at: validated.data.expires_at || null,
-            status: validated.data.status, // Allow status update
+            status: validated.data.status,
         })
         .eq('id', validated.data.id)
         .select()
@@ -171,24 +144,27 @@ export async function updateJob(formData: FormData) {
 }
 
 export async function deleteJob(id: string) {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const authCtx = await getAuthContext()
+    if (!authCtx) return { error: 'Usuário não autenticado' }
 
-    if (!user) return { error: 'Usuário não autenticado' }
+    const { user, profile, supabase } = authCtx
+    const isPrivileged = isAdminOrCoord(profile.role)
 
-    // RBAC Check
-    const { data: existingJob } = await supabase.from('opportunities').select('author_id').eq('id', id).single()
-    const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-
-    const isAdminOrCoord = profile && ['administrador', 'coordenador'].includes(profile.role)
+    const { data: existingJob } = await supabase
+        .from('opportunities')
+        .select('author_id')
+        .eq('id', id)
+        .single()
 
     if (!existingJob) return { error: 'Vaga não encontrada' }
 
-    if (!isAdminOrCoord && existingJob.author_id !== user.id) {
+    if (!isPrivileged && existingJob.author_id !== user.id) {
         return { error: 'Você não tem permissão para excluir esta vaga.' }
     }
 
-    const { error } = await supabase
+    const db = isPrivileged ? createAdminClient() : supabase
+
+    const { error } = await db
         .from('opportunities')
         .delete()
         .eq('id', id)

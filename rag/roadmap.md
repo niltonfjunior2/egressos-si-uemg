@@ -165,6 +165,23 @@ Este documento guia o desenvolvimento incremental do sistema, unindo os requisit
   - [x] Permissão para administradores editarem o login institucional do usuário diretamente pelo painel (Sincronização Auth/Database).
   - [x] Edição de e-mail alternativo pelo admin.
 
+## FASE 11: CODE QUALITY, ZERO TRUST & HARDENING [CONCLUÍDO]
+
+**Objetivo:** Eliminação de dívida técnica, centralização arquitetural e erradicação de vetores de escalação de privilégios.
+
+- [x] **Segurança e Zero Trust:**
+  - [x] Bloqueio de escalação de privilégios em `updateProfile` (edição discente não pode alterar role).
+  - [x] Proteção das Server Actions de relatórios analíticos de Censo e PII com RBAC obrigatório (`requireAdminOrCoord`).
+  - [x] Sanitização estrita com Zod em `app/(portal)/settings/actions.ts`.
+  - [x] Hardening da rota de seed (remoção de credenciais em texto puro).
+- [x] **DRY e Arquitetura:**
+  - [x] Criação de `lib/auth-guard.ts` com `getAuthContext`, `checkAdminAccess` e `requireAdminOrCoord`.
+  - [x] Unificação do `createAdminClient` canônico em `lib/supabase/admin.ts`.
+- [x] **Higienização:**
+  - [x] Exclusão dos arquivos rascunho órfãos `academic-actions.ts` e `academic-schema.ts`.
+- [x] **Memória Evolutiva:**
+  - [x] Registro das lições aprendidas [L29], [L30] e [L31].
+
 ---
 
 ### LEGENDAS DE LIÇÕES APRENDIDAS (L)
@@ -189,3 +206,6 @@ Este documento guia o desenvolvimento incremental do sistema, unindo os requisit
 - **[L26]**: Bypass do Motor de E-mail Nativo do Supabase.
 - **[L27]**: Desacoplamento do Identificador de Login vs Destino de E-mail.
 - **[L28]**: Sincronização de E-mail de Login (Auth) e Perfil (Data).
+- **[L29]**: Bloqueio de Escalação de Privilégios em Edição de Perfil.
+- **[L30]**: Proteção RBAC Mandatória em Relatórios de Censo e PII.
+- **[L31]**: Centralização do Auth Guard e Unificação do Admin Client.

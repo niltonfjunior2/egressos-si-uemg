@@ -1,21 +1,11 @@
 "use server"
 
-import { createClient, createAdminClient } from "@/utils/supabase/server"
+import { requireAdminOrCoord } from "@/lib/auth-guard"
+import { createAdminClient } from "@/lib/supabase/admin"
 import { revalidatePath } from "next/cache"
 
-async function checkAdminAccess() {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return false
-
-    const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-    return profile && ['administrador', 'coordenador'].includes(profile.role)
-}
-
 export async function toggleGlobalElectionMode(newState: boolean) {
-    if (!(await checkAdminAccess())) {
-        throw new Error('Não autorizado')
-    }
+    await requireAdminOrCoord()
 
     const supabase = createAdminClient()
     

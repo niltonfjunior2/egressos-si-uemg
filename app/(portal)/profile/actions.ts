@@ -17,17 +17,31 @@ export async function updateProfile(formData: ProfileFormData) {
         return { error: 'Dados inválidos' }
     }
 
+    // Buscar perfil atual para validação de integridade de papéis (Zero Trust)
+    const { data: currentProfile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single()
+
+    // Regra Zero Trust: O usuário comum NUNCA pode se auto-promover para administrador, coordenador ou professor.
+    // A única transição discente permitida pelo próprio usuário é de 'aluno' para 'egresso'.
+    let targetRole = currentProfile?.role
+    if (result.data.role === 'egresso' && currentProfile?.role === 'aluno') {
+        targetRole = 'egresso'
+    }
+
     const { error } = await supabase.from('profiles').upsert({
         id: user.id,
-        full_name: formData.fullName,
-        social_name: formData.socialName,
-        mobile_phone: formData.mobilePhone,
-        linkedin_url: formData.linkedinUrl,
-        github_url: formData.githubUrl,
-        social_media_url: formData.socialMediaUrl,
-        lattes_url: formData.lattesUrl,
-        is_open_to_mentoring: formData.isOpenToMentoring,
-        role: formData.role,
+        full_name: result.data.fullName,
+        social_name: result.data.socialName,
+        mobile_phone: result.data.mobilePhone,
+        linkedin_url: result.data.linkedinUrl,
+        github_url: result.data.githubUrl,
+        social_media_url: result.data.socialMediaUrl,
+        lattes_url: result.data.lattesUrl,
+        is_open_to_mentoring: result.data.isOpenToMentoring,
+        role: targetRole,
         updated_at: new Date().toISOString(),
     })
 

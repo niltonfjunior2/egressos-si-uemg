@@ -9,7 +9,8 @@ export const profileSchema = z.object({
     socialMediaUrl: z.string().url("URL inválida").optional().or(z.literal("")),
     lattesUrl: z.string().url("URL inválida").optional().or(z.literal("")),
     isOpenToMentoring: z.boolean(),
-    role: z.enum(["aluno", "egresso", "professor", "coordenador", "administrador"]).optional(),
+    // Apenas roles de discentes permitidas no portal. Cargos de gestão/docência são restritos ao Admin.
+    role: z.enum(["aluno", "egresso"]).optional(),
 })
 
 export type ProfileFormData = z.infer<typeof profileSchema>

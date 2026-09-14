@@ -79,7 +79,6 @@ export async function GET(request: Request) {
 
     return NextResponse.json({
         success: true,
-        message: 'Admin user created successfully',
-        credentials: { email, password }
+        message: 'Admin user created successfully'
     })
 }
